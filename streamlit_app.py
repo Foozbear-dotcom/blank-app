@@ -122,6 +122,58 @@ if uploaded_file is not None:
 
     st.dataframe(comp_bye_report)
 
+    st.subheader("Competition Expectations")
+
+    for competition in competitions:
+        st.write(competition)
+        
+    # ==================================================
+    # MATCHUP FREQUENCY REPORT
+    # ==================================================
+
+    st.subheader("Matchup Frequency Report")
+
+    games_only = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    games_only["Team A"] = games_only.apply(
+        lambda row: min(str(row["Home"]), str(row["Away"])),
+        axis=1
+    )
+
+    games_only["Team B"] = games_only.apply(
+        lambda row: max(str(row["Home"]), str(row["Away"])),
+        axis=1
+    )
+
+    matchup_report = (
+        games_only
+        .groupby(["Competition", "Team A", "Team B"])
+        .size()
+        .reset_index(name="Times Played")
+        .sort_values(["Competition", "Times Played", "Team A", "Team B"], ascending=[True, False, True, True])
+    )
+
+    st.dataframe(matchup_report)
+
+    # ==================================================
+    # TRIPLE-UP WARNING
+    # ==================================================
+
+    st.subheader("Triple-Up Warnings")
+
+    triple_ups = matchup_report[
+        matchup_report["Times Played"] >= 3
+    ]
+
+    if len(triple_ups) == 0:
+        st.success("No triple-ups found.")
+    else:
+        st.warning(f"Triple-ups found: {len(triple_ups)}")
+        st.dataframe(triple_ups)
+
     # Preview
     st.subheader("Preview")
     st.dataframe(df.head())
