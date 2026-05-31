@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Sports Fixture Creation App")
+st.title("Fixture Analysis Platform")
 
 uploaded_file = st.file_uploader(
     "Upload Fixture File",
@@ -122,6 +122,91 @@ if uploaded_file is not None:
     rules_df = pd.DataFrame(rules_summary)
 
     st.dataframe(rules_df)
+
+        # ==================================================
+    # VENUE USAGE REPORT
+    # ==================================================
+
+    st.subheader("Venue Usage Report")
+
+    venue_games = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    venue_games["Venue"] = venue_games["Venue"].astype(str)
+
+    venue_usage = (
+        venue_games
+        .groupby(["Venue"])
+        .size()
+        .reset_index(name="Games")
+        .sort_values("Games", ascending=False)
+    )
+
+    st.dataframe(venue_usage)
+
+    # ==================================================
+    # VENUE CAPACITY REPORT
+    # ==================================================
+
+    st.subheader("Venue Capacity Report")
+
+    venue_slots = {
+        "MBN": 3,
+        "MNT": 3,
+        "MON": 2,
+
+        "H-1": 2,
+        "H-2": 2,
+
+        "ASF": 2,
+        "BSF": 2,
+
+        "ESS1": 2,
+        "ESS2": 2,
+
+        "HAW": 2,
+        "FHC": 2,
+        "ESS": 2
+    }
+
+    venue_capacity_report = []
+
+    total_rounds = len(clean_rounds)
+
+    for _, row in venue_usage.iterrows():
+
+        venue = row["Venue"]
+        games = row["Games"]
+
+        slots = venue_slots.get(venue, 2)
+
+        capacity = slots * total_rounds
+
+        utilisation = round(
+            (games / capacity) * 100,
+            1
+        )
+
+        venue_capacity_report.append({
+            "Venue": venue,
+            "Games": games,
+            "Slots": slots,
+            "Capacity": capacity,
+            "Utilisation %": utilisation
+        })
+
+    venue_capacity_df = pd.DataFrame(
+        venue_capacity_report
+    )
+
+    st.dataframe(venue_capacity_df)
+
+    # Future: Venue Group Mapping
+    # H-1 + H-2 = HAW
+    # ASF + BSF = FHC
+    # ESS1 + ESS2 = ESS
 
     # Potential Data Issues
     st.subheader("Potential Data Issues")
