@@ -71,6 +71,58 @@ if uploaded_file is not None:
     summary_df = pd.DataFrame(competition_summary)
     st.dataframe(summary_df)
 
+        # ==================================================
+    # COMPETITION RULES REPORT
+    # ==================================================
+
+    st.subheader("Competition Rules Report")
+
+    def suggest_matchup_rules(team_count):
+
+        # Round odd team counts up
+        if team_count % 2 == 1:
+            team_count += 1
+
+        if team_count == 4:
+            return 4, 6
+
+        elif team_count == 6:
+            return 3, 4
+
+        elif team_count == 8:
+            return 2, 3
+
+        elif team_count == 10:
+            return 2, 2
+
+        elif team_count == 12:
+            return 1, 2
+
+        elif team_count == 14:
+            return 1, 2
+
+        elif team_count >= 16:
+            return 1, 1
+
+        else:
+            return 1, 3
+    
+    rules_summary = []
+
+    for _, row in summary_df.iterrows():
+        min_matchups, max_matchups = suggest_matchup_rules(row["Teams"])
+
+        rules_summary.append({
+            "Competition": row["Competition"],
+            "Teams": row["Teams"],
+            "Suggested Min Matchups": min_matchups,
+            "Suggested Max Matchups": max_matchups
+        })
+
+    rules_df = pd.DataFrame(rules_summary)
+
+    st.dataframe(rules_df)
+
     # Potential Data Issues
     st.subheader("Potential Data Issues")
 
