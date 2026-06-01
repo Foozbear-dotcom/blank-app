@@ -8,15 +8,75 @@ uploaded_file = st.file_uploader(
     type=["csv", "xlsx"]
 )
 
+venue_config_file = st.file_uploader(
+    "Upload Venue Config File",
+    type=["csv", "xlsx"]
+)
+
+with st.expander("Upload File Requirements"):
+
+    st.markdown("""
+### Fixture File Required Columns
+
+| Column |
+|----------|
+| Competition |
+| Round |
+| Home |
+| Away |
+| Venue |
+
+---
+
+### Venue Config Required Columns
+
+| Column |
+|----------|
+| Venue |
+| Facility |
+| Slots |
+
+Example:
+
+| Venue | Facility | Slots |
+|--------|----------|-------|
+|
+""")
 if uploaded_file is not None:
 
-    # Read file
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
     else:
         df = pd.read_excel(uploaded_file)
 
     st.success("File Uploaded Successfully")
+
+    # ==================================================
+    # FIXTURE UPLOAD VALIDATION
+    # ==================================================
+
+    st.subheader("Fixture Upload Validation")
+
+    required_fixture_columns = [
+        "Competition",
+        "Round",
+        "Home",
+        "Away",
+        "Venue"
+    ]
+
+    missing_fixture_columns = [
+        col for col in required_fixture_columns
+        if col not in df.columns
+    ]
+
+    if len(missing_fixture_columns) == 0:
+        st.success("Fixture file has all required columns.")
+    else:
+        st.error("Fixture file is missing required columns:")
+        st.write(missing_fixture_columns)
+        st.stop()
+
 
     # File Summary
     st.subheader("File Summary")
@@ -123,7 +183,7 @@ if uploaded_file is not None:
 
     st.dataframe(rules_df)
 
-        # ==================================================
+    # ==================================================
     # VENUE USAGE REPORT
     # ==================================================
 
@@ -147,67 +207,67 @@ if uploaded_file is not None:
     st.dataframe(venue_usage)
 
     # ==================================================
-    # VENUE CAPACITY REPORT
+    # VENUE CONFIG
     # ==================================================
 
-    st.subheader("Venue Capacity Report")
+    venue_slots = {}
+    venue_groups = {}
 
-    venue_slots = {
-        "MBN": 3,
-        "MNT": 3,
-        "MON": 2,
+    if venue_config_file is not None:
 
-        "H-1": 2,
-        "H-2": 2,
+        if venue_config_file.name.endswith(".csv"):
+            venue_config = pd.read_csv(venue_config_file)
+        else:
+            venue_config = pd.read_excel(venue_config_file)
 
-        "ASF": 2,
-        "BSF": 2,
+        st.success("Venue Config Uploaded Successfully")
 
-        "ESS1": 2,
-        "ESS2": 2,
+        st.subheader("Venue Config Preview")
+        st.dataframe(venue_config)
 
-        "HAW": 2,
-        "FHC": 2,
-        "ESS": 2
-    }
+        venue_config["Venue"] = venue_config["Venue"].astype(str)
+        venue_config["Facility"] = venue_config["Facility"].astype(str)
+        venue_config["Slots"] = venue_config["Slots"].astype(int)
 
-    venue_capacity_report = []
-
-    total_rounds = len(clean_rounds)
-
-    for _, row in venue_usage.iterrows():
-
-        venue = row["Venue"]
-        games = row["Games"]
-
-        slots = venue_slots.get(venue, 2)
-
-        capacity = slots * total_rounds
-
-        utilisation = round(
-            (games / capacity) * 100,
-            1
+        venue_slots = dict(
+            zip(
+                venue_config["Venue"],
+                venue_config["Slots"]
+            )
         )
 
-        venue_capacity_report.append({
-            "Venue": venue,
-            "Games": games,
-            "Slots": slots,
-            "Capacity": capacity,
-            "Utilisation %": utilisation
-        })
+        venue_groups = dict(
+            zip(
+                venue_config["Venue"],
+                venue_config["Facility"]
+            )
+        )
 
-    venue_capacity_df = pd.DataFrame(
-        venue_capacity_report
-    )
+    else:
 
-    st.dataframe(venue_capacity_df)
+        venue_slots = {
+            "MBN": 3,
+            "MNT": 3,
+            "MON": 2,
+            "H-1": 2,
+            "H-2": 2,
+            "ASF": 2,
+            "BSF": 2,
+            "ESS1": 2,
+            "ESS2": 2,
+            "HAW": 2,
+            "FHC": 2,
+            "ESS": 2
+        }
 
-    # Future: Venue Group Mapping
-    # H-1 + H-2 = HAW
-    # ASF + BSF = FHC
-    # ESS1 + ESS2 = ESS
-
+        venue_groups = {
+            "H-1": "HAW",
+            "H-2": "HAW",
+            "ASF": "FHC",
+            "BSF": "FHC",
+            "ESS1": "ESS",
+            "ESS2": "ESS"
+        }
     # Potential Data Issues
     st.subheader("Potential Data Issues")
 
