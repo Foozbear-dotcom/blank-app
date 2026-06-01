@@ -100,13 +100,29 @@ if uploaded_file is not None:
     rounds = sorted(df["Round"].dropna().unique())
     clean_rounds = [int(r) for r in rounds]
 
-    # Competition Summary
-    st.subheader("Competition Summary")
-    st.write(f"Competitions: {len(competitions)}")
-    st.write(f"Teams: {len(teams)}")
-    st.write(f"Venues: {len(venues)}")
-    st.write(f"Rounds: {len(clean_rounds)}")
-    st.write(f"Games: {len(df)}")
+    # ==================================================
+    # FIXTURE HEALTH DASHBOARD
+    # ==================================================
+
+    st.header("Fixture Health Dashboard")
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.metric("Competitions", len(competitions))
+
+    with col2:
+        st.metric("Teams", len(teams))
+
+    with col3:
+        st.metric("Venues", len(venues))
+
+    with col4:
+        st.metric("Rounds", len(clean_rounds))
+
+    with col5:
+        st.metric("Games", len(df))
+
 
     # Competition Breakdown
     st.subheader("Competition Breakdown")
