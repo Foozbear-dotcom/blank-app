@@ -387,6 +387,57 @@ if uploaded_file is not None:
         st.warning(f"Triple-ups found: {len(triple_ups)}")
         st.dataframe(triple_ups)
 
+    # ==================================================
+    # MISSING MATCHUP REPORT
+    # ==================================================
+
+    st.subheader("Missing Matchup Report")
+
+    missing_matchups = []
+
+    for competition in competitions:
+
+        comp_games = games_only[
+            games_only["Competition"] == competition
+        ]
+
+        comp_home = comp_games["Home"].dropna().astype(str)
+        comp_away = comp_games["Away"].dropna().astype(str)
+
+        comp_teams = sorted(
+            pd.concat([comp_home, comp_away]).unique()
+        )
+
+        played_pairs = set(
+            zip(
+                comp_games["Team A"],
+                comp_games["Team B"]
+            )
+        )
+
+        for i in range(len(comp_teams)):
+            for j in range(i + 1, len(comp_teams)):
+
+                team_a = min(comp_teams[i], comp_teams[j])
+                team_b = max(comp_teams[i], comp_teams[j])
+
+                if (team_a, team_b) not in played_pairs:
+                    missing_matchups.append({
+                        "Competition": competition,
+                        "Team A": team_a,
+                        "Team B": team_b
+                    })
+
+    missing_matchups_df = pd.DataFrame(missing_matchups)
+
+    if len(missing_matchups_df) == 0:
+        st.success("No missing matchups found.")
+    else:
+        st.warning(
+            f"Missing matchups found: {len(missing_matchups_df)}"
+        )
+        st.dataframe(missing_matchups_df)
+
     # Preview
     st.subheader("Preview")
     st.dataframe(df.head())
