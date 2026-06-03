@@ -51,19 +51,35 @@ if uploaded_file is not None:
 
     st.success("File Uploaded Successfully")
 
+    fixture_stage = st.radio(
+    "Fixture Stage",
+    ["Draft Fixture", "Final Fixture"]
+)
+
     # ==================================================
     # FIXTURE UPLOAD VALIDATION
     # ==================================================
 
     st.subheader("Fixture Upload Validation")
 
-    required_fixture_columns = [
-        "Competition",
-        "Round",
-        "Home",
-        "Away",
-        "Venue"
-    ]
+    if fixture_stage == "Draft Fixture":
+        required_fixture_columns = [
+            "Competition",
+            "Round",
+            "Home",
+            "Away",
+            "Venue"
+        ]
+    else:
+        required_fixture_columns = [
+            "Competition",
+            "Round",
+            "Home",
+            "Away",
+            "Venue",
+            "Date",
+            "Time"
+        ]
 
     missing_fixture_columns = [
         col for col in required_fixture_columns
@@ -284,6 +300,46 @@ if uploaded_file is not None:
             "ESS1": "ESS",
             "ESS2": "ESS"
         }
+    
+    # ==================================================
+    # VENUE CLASH DETECTION
+    # ==================================================
+
+    if fixture_stage == "Final Fixture":
+
+        st.subheader("Venue Clash Detection")
+
+        clash_games = df[
+            (df["Home"].astype(str).str.lower() != "bye") &
+            (df["Away"].astype(str).str.lower() != "bye")
+        ].copy()
+
+        clash_games["Venue"] = clash_games["Venue"].astype(str)
+        clash_games["Date"] = clash_games["Date"].astype(str)
+        clash_games["Time"] = clash_games["Time"].astype(str)
+
+        venue_clashes = (
+            clash_games
+            .groupby(["Date", "Venue", "Time"])
+            .size()
+            .reset_index(name="Games Scheduled")
+        )
+
+        venue_clashes = venue_clashes[
+            venue_clashes["Games Scheduled"] > 1
+        ]
+
+        if len(venue_clashes) == 0:
+            st.success("No venue/time clashes found.")
+        else:
+            st.warning(f"Venue/time clashes found: {len(venue_clashes)}")
+            st.dataframe(venue_clashes)
+
+    else:
+
+        st.subheader("Venue Clash Detection")
+        st.info("Skipped for draft fixtures because Date and Time are not required.")
+    
     # Potential Data Issues
     st.subheader("Potential Data Issues")
 
