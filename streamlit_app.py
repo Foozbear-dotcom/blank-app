@@ -339,7 +339,57 @@ if uploaded_file is not None:
 
         st.subheader("Venue Clash Detection")
         st.info("Skipped for draft fixtures because Date and Time are not required.")
-    
+
+    # ==================================================
+    # VENUE CAPACITY BY ROUND
+    # ==================================================
+
+    st.subheader("Venue Capacity By Round")
+
+    capacity_games = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    capacity_games["Venue"] = capacity_games["Venue"].astype(str)
+
+    venue_round_usage = (
+        capacity_games
+        .groupby(["Round", "Venue"])
+        .size()
+        .reset_index(name="Games Scheduled")
+    )
+
+    venue_round_usage["Capacity"] = venue_round_usage["Venue"].map(
+        venue_slots
+    ).fillna(2).astype(int)
+
+    venue_round_usage["Status"] = venue_round_usage.apply(
+        lambda row: "Over Capacity"
+        if row["Games Scheduled"] > row["Capacity"]
+        else "OK",
+        axis=1
+    )
+
+    st.dataframe(
+        venue_round_usage.sort_values(
+            ["Status", "Round", "Venue"],
+            ascending=[True, True, True]
+        )
+    )
+
+    over_capacity = venue_round_usage[
+        venue_round_usage["Status"] == "Over Capacity"
+    ]
+
+    if len(over_capacity) == 0:
+        st.success("No venue capacity issues by round found.")
+    else:
+        st.warning(
+            f"Venue capacity issues found: {len(over_capacity)}"
+        )
+        st.dataframe(over_capacity)  
+
     # Potential Data Issues
     st.subheader("Potential Data Issues")
 
