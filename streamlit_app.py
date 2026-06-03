@@ -388,8 +388,110 @@ if uploaded_file is not None:
         st.warning(
             f"Venue capacity issues found: {len(over_capacity)}"
         )
-        st.dataframe(over_capacity)  
+        st.dataframe(over_capacity) 
+         
+    # ==================================================
+    # HOME / AWAY BALANCE REPORT
+    # ==================================================
 
+    st.subheader("Home / Away Balance Report")
+
+    fixture_games = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    home_counts = (
+        fixture_games
+        .groupby(["Competition", "Home"])
+        .size()
+        .reset_index(name="Home Games")
+        .rename(columns={"Home": "Team"})
+    )
+
+    away_counts = (
+        fixture_games
+        .groupby(["Competition", "Away"])
+        .size()
+        .reset_index(name="Away Games")
+        .rename(columns={"Away": "Team"})
+    )
+
+    home_away_report = pd.merge(
+        home_counts,
+        away_counts,
+        on=["Competition", "Team"],
+        how="outer"
+    ).fillna(0)
+
+    home_away_report["Home Games"] = (
+        home_away_report["Home Games"].astype(int)
+    )
+
+    home_away_report["Away Games"] = (
+        home_away_report["Away Games"].astype(int)
+    )
+
+    home_away_report["Difference"] = (
+        home_away_report["Home Games"]
+        - home_away_report["Away Games"]
+    )
+
+    def home_away_status(diff):
+
+        if abs(diff) >= 4:
+            return "Critical"
+
+        elif abs(diff) >= 2:
+            return "Warning"
+
+        else:
+            return "OK"
+
+    home_away_report["Status"] = (
+        home_away_report["Difference"]
+        .apply(home_away_status)
+    )
+
+    home_away_report = home_away_report.sort_values(
+        ["Competition", "Status", "Team"]
+    )
+
+    st.dataframe(home_away_report)
+
+    critical_home_away = home_away_report[
+        home_away_report["Status"] == "Critical"
+    ]
+
+    warning_home_away = home_away_report[
+        home_away_report["Status"] == "Warning"
+    ]
+
+    if len(critical_home_away) > 0:
+
+        st.error(
+            f"Critical home/away imbalances: {len(critical_home_away)}"
+        )
+
+        st.dataframe(critical_home_away)
+
+    if len(warning_home_away) > 0:
+
+        st.warning(
+            f"Home/away warnings: {len(warning_home_away)}"
+        )
+
+        st.dataframe(warning_home_away)
+
+    if (
+        len(critical_home_away) == 0
+        and
+        len(warning_home_away) == 0
+    ):
+
+        st.success(
+            "No significant home/away imbalances found."
+        )
     # Potential Data Issues
     st.subheader("Potential Data Issues")
 
