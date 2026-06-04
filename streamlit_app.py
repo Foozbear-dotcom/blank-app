@@ -393,7 +393,7 @@ if uploaded_file is not None:
             f"Venue capacity issues found: {len(over_capacity)}"
         )
         st.dataframe(over_capacity) 
-    # ==================================================
+     # ==================================================
     # SEEDINGS UPLOAD
     # ==================================================
 
@@ -401,38 +401,59 @@ if uploaded_file is not None:
 
         if seedings_file.name.endswith(".csv"):
             seedings_df = pd.read_csv(seedings_file)
-    else:
-        seedings_df = pd.read_excel(seedings_file)
+        else:
+            seedings_df = pd.read_excel(seedings_file)
 
-    # ==================================================
-    # SEEDINGS UPLOAD VALIDATION
-    # ==================================================
+        # ==================================================
+        # SEEDINGS UPLOAD VALIDATION
+        # ==================================================
 
-    st.subheader("Seedings Upload Validation")
+        st.subheader("Seedings Upload Validation")
 
-    required_seedings_columns = [
-        "Competition",
-        "Seed",
-        "Team",
-        "Venue"
-    ]
+        required_seedings_columns = [
+            "Competition",
+            "Seed",
+            "Team",
+            "Venue"
+        ]
 
-    missing_seedings_columns = [
-        col for col in required_seedings_columns
-        if col not in seedings_df.columns
-    ]
+        missing_seedings_columns = [
+            col for col in required_seedings_columns
+            if col not in seedings_df.columns
+        ]
 
-    if len(missing_seedings_columns) == 0:
-        st.success("Seedings file has all required columns.")
-    else:
-        st.error("Seedings file is missing required columns:")
-        st.write(missing_seedings_columns)
-        st.stop()
+        if len(missing_seedings_columns) == 0:
+            st.success("Seedings file has all required columns.")
+        else:
+            st.error("Seedings file is missing required columns:")
+            st.write(missing_seedings_columns)
+            st.stop()
 
-    st.success("Seedings File Uploaded Successfully")
+        st.success("Seedings File Uploaded Successfully")
 
-    st.subheader("Seedings Preview")
-    
+        st.subheader("Seedings Preview")
+        st.dataframe(seedings_df.head())
+
+        st.subheader("Seedings Summary")
+
+        seed_competitions = (
+            seedings_df["Competition"]
+            .dropna()
+            .astype(str)
+            .nunique()
+        )
+
+        seed_teams = (
+            seedings_df[
+                seedings_df["Team"]
+                .astype(str)
+                .str.lower() != "bye"
+            ]["Team"]
+            .nunique()
+        )
+
+        st.write(f"Competitions: {seed_competitions}")
+        st.write(f"Teams: {seed_teams}")
     # ==================================================
     # HOME / AWAY BALANCE REPORT
     # ==================================================
