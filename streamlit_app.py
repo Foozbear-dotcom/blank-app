@@ -454,6 +454,258 @@ if uploaded_file is not None:
 
         st.write(f"Competitions: {seed_competitions}")
         st.write(f"Teams: {seed_teams}")
+
+        # ==================================================
+        # DUPLICATE SEED DETECTION
+        # ==================================================
+
+        st.subheader("Duplicate Seed Detection")
+
+        duplicate_seeds = (
+            seedings_df
+            .groupby(["Competition", "Seed"])
+            .size()
+            .reset_index(name="Count")
+        )
+
+        duplicate_seeds = duplicate_seeds[
+            duplicate_seeds["Count"] > 1
+        ]
+
+        if len(duplicate_seeds) == 0:
+
+            st.success("No duplicate seeds found.")
+
+        else:
+
+            st.warning(
+                f"Duplicate seeds found: {len(duplicate_seeds)}"
+            )
+
+            st.dataframe(duplicate_seeds)
+
+        # ==================================================
+        # MISSING SEED DETECTION
+        # ==================================================
+
+        st.subheader("Missing Seed Detection")
+
+        missing_seed_rows = []
+
+        for competition in seedings_df["Competition"].dropna().unique():
+
+            comp_df = seedings_df[
+                seedings_df["Competition"] == competition
+            ].copy()
+
+            # Ignore Bye rows
+            comp_df = comp_df[
+                comp_df["Team"]
+                .astype(str)
+                .str.lower() != "bye"
+            ]
+
+            seeds = sorted(
+                comp_df["Seed"]
+                .dropna()
+                .astype(int)
+                .unique()
+            )
+
+            if len(seeds) > 0:
+
+                expected = set(
+                    range(min(seeds), max(seeds) + 1)
+                )
+
+                actual = set(seeds)
+
+                missing = sorted(
+                    expected - actual
+                )
+
+                for seed in missing:
+
+                    missing_seed_rows.append({
+                        "Competition": competition,
+                        "Missing Seed": seed
+                    })
+
+        if len(missing_seed_rows) == 0:
+
+            st.success(
+                "No missing seeds found."
+            )
+
+        else:
+
+            missing_seed_report = pd.DataFrame(
+                missing_seed_rows
+            )
+
+            st.warning(
+                f"Missing seeds found: {len(missing_seed_report)}"
+            )
+
+            st.dataframe(
+                missing_seed_report
+            )
+
+        # ==================================================
+        # FIXTURE TEAMS VS SEEDINGS TEAMS
+        # ==================================================
+
+        st.subheader("Fixture Teams vs Seedings Teams")
+
+        fixture_team_rows = []
+
+        for competition in competitions:
+
+            comp_fixture = df[
+                df["Competition"] == competition
+            ].copy()
+
+            comp_home = comp_fixture["Home"].dropna().astype(str)
+            comp_away = comp_fixture["Away"].dropna().astype(str)
+
+            comp_fixture_teams = pd.concat([
+                comp_home,
+                comp_away
+            ])
+
+            comp_fixture_teams = comp_fixture_teams[
+                comp_fixture_teams.str.lower() != "bye"
+            ]
+
+            comp_fixture_teams = set(
+                comp_fixture_teams.unique()
+            )
+
+            comp_seedings = seedings_df[
+                seedings_df["Competition"] == competition
+            ].copy()
+
+            comp_seeding_teams = comp_seedings["Team"].dropna().astype(str)
+
+            comp_seeding_teams = comp_seeding_teams[
+                comp_seeding_teams.str.lower() != "bye"
+            ]
+
+            comp_seeding_teams = set(
+                comp_seeding_teams.unique()
+            )
+
+            fixture_not_seeded = sorted(
+                comp_fixture_teams - comp_seeding_teams
+            )
+
+            seeded_not_fixture = sorted(
+                comp_seeding_teams - comp_fixture_teams
+            )
+
+            for team in fixture_not_seeded:
+
+                fixture_team_rows.append({
+                    "Competition": competition,
+                    "Team": team,
+                    "Issue": "In fixture but not in seedings"
+                })
+
+            for team in seeded_not_fixture:
+
+                fixture_team_rows.append({
+                    "Competition": competition,
+                    "Team": team,
+                    "Issue": "In seedings but not in fixture"
+                })
+
+        if len(fixture_team_rows) == 0:
+
+            st.success(
+                "Fixture teams and seedings teams match."
+            )
+
+        else:
+
+            fixture_team_report = pd.DataFrame(
+                fixture_team_rows
+            )
+
+            st.warning(
+                f"Fixture/seedings team mismatches found: {len(fixture_team_report)}"
+            )
+
+            st.dataframe(
+                fixture_team_report)
+
+        # ==================================================
+        # SEED LOOKUP REPORT
+        # ==================================================
+
+        st.subheader("Seed Lookup Report")
+
+        seed_lookup = (
+            seedings_df[
+                ["Competition", "Team", "Seed"]
+            ]
+            .copy()
+        )
+
+        fixture_seed_base = df.copy()
+
+        existing_seed_columns = [
+            "Home Seed",
+            "Away Seed"
+        ]
+
+        fixture_seed_base = fixture_seed_base.drop(
+            columns=[
+                col for col in existing_seed_columns
+                if col in fixture_seed_base.columns
+            ],
+            errors="ignore"
+        )
+
+        home_seed_report = pd.merge(
+            fixture_seed_base,
+            seed_lookup,
+            left_on=["Competition", "Home"],
+            right_on=["Competition", "Team"],
+            how="left"
+        )
+
+        home_seed_report = (
+            home_seed_report
+            .rename(columns={"Seed": "Home Seed"})
+            .drop(columns=["Team"])
+        )
+
+        seed_report = pd.merge(
+            home_seed_report,
+            seed_lookup,
+            left_on=["Competition", "Away"],
+            right_on=["Competition", "Team"],
+            how="left"
+        )
+
+        seed_report = (
+            seed_report
+            .rename(columns={"Seed": "Away Seed"})
+            .drop(columns=["Team"])
+        )
+
+        seed_report = seed_report[
+            [
+                "Competition",
+                "Round",
+                "Home",
+                "Home Seed",
+                "Away",
+                "Away Seed"
+            ]
+        ]
+
+        st.dataframe(seed_report)
     # ==================================================
     # HOME / AWAY BALANCE REPORT
     # ==================================================
