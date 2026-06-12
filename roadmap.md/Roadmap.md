@@ -1,5 +1,15 @@
 # Sports Fixture Creation App Roadmap
 
+Current Version
+---------------
+V1.6
+
+Next
+----
+V1.6.1 Duplicate Seed Detection
+V1.6.2 Missing Seed Detection
+V1.6.3 Fixture vs Seedings Validation
+
 ## Completed
 
 ### V1.0
