@@ -798,6 +798,17 @@ if uploaded_file is not None:
                     ]
                 ]
             )
+
+# ==================================================
+# VENUE RETURN CANDIDATES
+# ==================================================
+
+    st.subheader("Venue Return Candidates")
+
+    st.info(
+    "Future version: identifies games that may be able to return to their default venue when capacity becomes available."
+)
+
     # ==================================================
     # HOME / AWAY BALANCE REPORT
     # ==================================================
