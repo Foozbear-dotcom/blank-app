@@ -706,6 +706,69 @@ if uploaded_file is not None:
         ]
 
         st.dataframe(seed_report)
+
+    # ==================================================
+    # VENUE LOOKUP REPORT
+    # ==================================================
+
+    st.subheader("Venue Lookup Report")
+
+    venue_report = df.copy()
+
+    # Home Venue Lookup
+
+    home_venue_lookup = (
+    seedings_df[
+        ["Competition", "Team", "Venue"]
+    ]
+    .drop_duplicates()
+    .rename(
+        columns={
+            "Team": "Home",
+            "Venue": "Home Venue"
+        }
+    )
+    )
+
+    venue_report = venue_report.merge(
+    home_venue_lookup,
+    on=["Competition", "Home"],
+    how="left"
+    )
+
+    # Away Venue Lookup
+
+    away_venue_lookup = (
+    seedings_df[
+        ["Competition", "Team", "Venue"]
+    ]
+    .drop_duplicates()
+    .rename(
+        columns={
+            "Team": "Away",
+            "Venue": "Away Venue"
+        }
+    )
+    )
+
+    venue_report = venue_report.merge(
+    away_venue_lookup,
+    on=["Competition", "Away"],
+    how="left"
+    )
+
+    st.dataframe(
+    venue_report[
+        [
+            "Competition",
+            "Round",
+            "Home",
+            "Home Venue",
+            "Away"
+        ]
+    ]
+    )
+
     # ==================================================
     # HOME / AWAY BALANCE REPORT
     # ==================================================
