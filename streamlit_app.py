@@ -799,15 +799,113 @@ if uploaded_file is not None:
                 ]
             )
 
-# ==================================================
-# VENUE RETURN CANDIDATES
-# ==================================================
+        # ==================================================
+        # VENUE RETURN OPPORTUNITIES
+        # ==================================================
 
-    st.subheader("Venue Return Candidates")
+            st.subheader("Venue Return Opportunities")
 
-    st.info(
-    "Future version: identifies games that may be able to return to their default venue when capacity becomes available."
-)
+            venue_return_base = venue_exceptions.copy()
+
+            if len(venue_return_base) == 0:
+
+                st.success("No venue return opportunities found.")
+
+            else:
+
+                venue_return_base["Round Key"] = (
+                venue_return_base["Round"].astype(str)
+            )
+
+            venue_return_base["Default Venue"] = (
+                venue_return_base["Default Venue"].fillna("").astype(str)
+            )
+
+            capacity_lookup = venue_round_usage.copy()
+
+            capacity_lookup["Round Key"] = (
+                capacity_lookup["Round"].astype(str)
+            )
+
+            capacity_lookup["Default Venue"] = (
+                capacity_lookup["Venue"].astype(str)
+            )
+
+            capacity_lookup = capacity_lookup.rename(
+                columns={
+                    "Games Scheduled": "Games At Default Venue",
+                    "Capacity": "Default Venue Capacity"
+                }
+            )
+
+            venue_return_base = venue_return_base.merge(
+                capacity_lookup[
+                    [
+                        "Round Key",
+                        "Default Venue",
+                        "Games At Default Venue",
+                        "Default Venue Capacity"
+                    ]
+                ],
+                on=["Round Key", "Default Venue"],
+                how="left"
+            )
+
+            venue_return_base["Games At Default Venue"] = (
+                venue_return_base["Games At Default Venue"]
+                .fillna(0)
+                .astype(int)
+            )
+
+            venue_return_base["Default Venue Capacity"] = (
+                venue_return_base["Default Venue Capacity"]
+                .fillna(
+                    venue_return_base["Default Venue"].map(venue_slots)
+                )
+                .fillna(2)
+                .astype(int)
+            )
+
+            venue_return_base["Spare Capacity"] = (
+                venue_return_base["Default Venue Capacity"]
+                - venue_return_base["Games At Default Venue"]
+            )
+
+            venue_return_opportunities = venue_return_base[
+                venue_return_base["Spare Capacity"] >= 1
+            ].copy()
+
+            if len(venue_return_opportunities) == 0:
+
+                st.info(
+                    "No moved games currently have spare capacity at their default venue."
+                )
+
+            else:
+
+                st.success(
+                    f"Venue return opportunities found: {len(venue_return_opportunities)}"
+                )
+
+                st.dataframe(
+                    venue_return_opportunities[
+                        [
+                            "Competition",
+                            "Round",
+                            "Home",
+                            "Away",
+                            "Default Venue",
+                            "Venue",
+                            "Games At Default Venue",
+                            "Default Venue Capacity",
+                            "Spare Capacity"
+                        ]
+                    ].rename(
+                        columns={
+                            "Venue": "Current Venue"
+                        }
+                    )
+                )
 
     # ==================================================
     # HOME / AWAY BALANCE REPORT
