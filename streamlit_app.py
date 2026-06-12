@@ -757,9 +757,26 @@ if uploaded_file is not None:
         )
 
         venue_exceptions = venue_exceptions[
-            venue_exceptions["Default Venue"]
-            != venue_exceptions["Venue"]
-        ].copy()
+    (venue_exceptions["Home"].astype(str).str.lower() != "bye") &
+    (venue_exceptions["Away"].astype(str).str.lower() != "bye")
+].copy()
+
+        venue_exceptions["Default Venue"] = (
+    venue_exceptions["Default Venue"]
+    .fillna("")
+    .astype(str)
+)
+
+        venue_exceptions["Venue"] = (
+    venue_exceptions["Venue"]
+    .fillna("")
+    .astype(str)
+)
+
+        venue_exceptions = venue_exceptions[
+    venue_exceptions["Default Venue"]
+    != venue_exceptions["Venue"]
+].copy()
 
         if len(venue_exceptions) == 0:
             st.success("No venue exceptions found.")

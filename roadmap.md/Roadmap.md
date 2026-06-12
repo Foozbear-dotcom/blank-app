@@ -60,3 +60,13 @@ V1.6.3 Fixture vs Seedings Validation
 - Audit reports
 - Fixture health score
 - Auto seeding suggestions
+V1.8 Data Rules
+
+Rule 1:
+Bye rows are fixture rows.
+
+Rule 2:
+Bye rows are not games.
+
+Rule 3:
+Capacity, venue and matchup calculations ignore Bye rows.
