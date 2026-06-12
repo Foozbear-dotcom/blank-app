@@ -707,68 +707,80 @@ if uploaded_file is not None:
 
         st.dataframe(seed_report)
 
-    # ==================================================
-    # VENUE LOOKUP REPORT
-    # ==================================================
+        # ==================================================
+        # VENUE LOOKUP REPORT
+        # ==================================================
 
-    st.subheader("Venue Lookup Report")
+        st.subheader("Venue Lookup Report")
 
-    venue_report = df.copy()
+        venue_report = df.copy()
 
-    # Home Venue Lookup
+        home_venue_lookup = (
+            seedings_df[["Competition", "Team", "Venue"]]
+            .drop_duplicates()
+            .rename(columns={
+                "Team": "Home",
+                "Venue": "Home Venue"
+            })
+        )
 
-    home_venue_lookup = (
-    seedings_df[
-        ["Competition", "Team", "Venue"]
-    ]
-    .drop_duplicates()
-    .rename(
-        columns={
-            "Team": "Home",
-            "Venue": "Home Venue"
-        }
-    )
-    )
+        venue_report = venue_report.merge(
+            home_venue_lookup,
+            on=["Competition", "Home"],
+            how="left"
+        )
 
-    venue_report = venue_report.merge(
-    home_venue_lookup,
-    on=["Competition", "Home"],
-    how="left"
-    )
+        st.dataframe(
+            venue_report[
+                [
+                    "Competition",
+                    "Round",
+                    "Home",
+                    "Home Venue",
+                    "Away"
+                ]
+            ]
+        )
 
-    # Away Venue Lookup
+        # ==================================================
+        # VENUE EXCEPTION REPORT
+        # ==================================================
 
-    away_venue_lookup = (
-    seedings_df[
-        ["Competition", "Team", "Venue"]
-    ]
-    .drop_duplicates()
-    .rename(
-        columns={
-            "Team": "Away",
-            "Venue": "Away Venue"
-        }
-    )
-    )
+        st.subheader("Venue Exception Report")
 
-    venue_report = venue_report.merge(
-    away_venue_lookup,
-    on=["Competition", "Away"],
-    how="left"
-    )
+        venue_exceptions = venue_report.copy()
 
-    st.dataframe(
-    venue_report[
-        [
-            "Competition",
-            "Round",
-            "Home",
-            "Home Venue",
-            "Away"
-        ]
-    ]
-    )
+        venue_exceptions = venue_exceptions.rename(
+            columns={
+                "Home Venue": "Default Venue"
+            }
+        )
 
+        venue_exceptions = venue_exceptions[
+            venue_exceptions["Default Venue"]
+            != venue_exceptions["Venue"]
+        ].copy()
+
+        if len(venue_exceptions) == 0:
+            st.success("No venue exceptions found.")
+
+        else:
+            st.warning(
+                f"Venue exceptions found: {len(venue_exceptions)}"
+            )
+
+            st.dataframe(
+                venue_exceptions[
+                    [
+                        "Competition",
+                        "Round",
+                        "Home",
+                        "Away",
+                        "Default Venue",
+                        "Venue"
+                    ]
+                ]
+            )
     # ==================================================
     # HOME / AWAY BALANCE REPORT
     # ==================================================
