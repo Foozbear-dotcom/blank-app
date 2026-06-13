@@ -120,6 +120,19 @@ if uploaded_file is not None:
     rounds = sorted(df["Round"].dropna().unique())
     clean_rounds = [int(r) for r in rounds]
 
+# ==================================================
+# OPTIONAL OVERRIDE COLUMNS
+# ==================================================
+
+    if "Override" not in df.columns:
+        df["Override"] = "No"
+
+    if "Override Reason" not in df.columns:
+        df["Override Reason"] = ""
+
+    if "Override Notes" not in df.columns:
+        df["Override Notes"] = ""
+
     # ==================================================
     # FIXTURE HEALTH DASHBOARD
     # ==================================================
@@ -907,6 +920,45 @@ if uploaded_file is not None:
                     )
                 )
 
+
+            # ==================================================
+# MANUAL OVERRIDE REPORT
+# ==================================================
+
+                st.subheader("Manual Override Report")
+
+                override_games = df[
+    df["Override"]
+    .astype(str)
+    .str.lower()
+    == "yes"
+].copy()
+
+                if len(override_games) == 0:
+
+                    st.success(
+        "No manual overrides found."
+    )
+
+                else:
+
+                    st.warning(
+        f"Manual overrides found: {len(override_games)}"
+    )
+
+                    st.dataframe(
+        override_games[
+            [
+                "Competition",
+                "Round",
+                "Home",
+                "Away",
+                "Venue",
+                "Override Reason",
+                "Override Notes"
+            ]
+        ]
+    )
     # ==================================================
     # HOME / AWAY BALANCE REPORT
     # ==================================================

@@ -39,6 +39,10 @@ V1.6.3 Fixture vs Seedings Validation
 
 ### V1.7
 - Venue Configuration Improvements
+V1.7   Venue Lookup Report
+V1.7.1 Venue Exception Report
+V1.7.2 Venue Return Framework
+V1.7.3 Capacity Aware Venue Returns
 
 ### V1.8
 - Download Reports (XLSX)
@@ -63,6 +67,7 @@ V1.8.3 XLSX multi-sheet export
 - Audit reports
 - Fixture health score
 - Auto seeding suggestions
+- Export Architecture
 V1.8 Data Rules
 
 Rule 1:
