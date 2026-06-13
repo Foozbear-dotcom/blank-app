@@ -983,8 +983,32 @@ if uploaded_file is not None:
                 st.write(f"Home: {selected_row['Home']}")
                 st.write(f"Away: {selected_row['Away']}")
                 st.write(f"Current Venue: {selected_row['Venue']}")
-                st.write(f"Default Venue: {selected_row['Default Venue']}")
-                st.write(f"Spare Capacity: {selected_row['Spare Capacity']}")
+             
+            # ==================================================
+            # VENUE SNAPSHOT
+            # ==================================================
+
+            st.subheader("Venue Snapshot")
+
+            snapshot_col1, snapshot_col2, snapshot_col3 = st.columns(3)
+
+            with snapshot_col1:
+                st.metric(
+                    "Default Venue",
+                    selected_row["Default Venue"]
+                )
+
+            with snapshot_col2:
+                st.metric(
+                    "Games Scheduled",
+                    selected_row["Games At Default Venue"]
+                )
+
+            with snapshot_col3:
+                st.metric(
+                    "Spare Capacity",
+                    selected_row["Spare Capacity"]
+                )
 
                             # ==================================================
             # GAMES CURRENTLY AT DEFAULT VENUE
