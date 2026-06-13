@@ -942,26 +942,133 @@ if uploaded_file is not None:
                     )
                 )
 
+        # ==================================================
+        # OVERRIDE ASSISTANT UI
+        # ==================================================
+
+                st.subheader("Override Assistant")
+
+                if len(venue_return_opportunities) == 0:
+
+                    st.info("No venue return opportunities available for override review.")
+
+                else:
+
+                    venue_return_opportunities["Game Label"] = (
+                venue_return_opportunities["Competition"].astype(str)
+                + " | Round "
+                + venue_return_opportunities["Round"].astype(str)
+                + " | "
+                + venue_return_opportunities["Home"].astype(str)
+                + " v "
+                + venue_return_opportunities["Away"].astype(str)
+                + " | "
+                + venue_return_opportunities["Venue"].astype(str)
+                + " → "
+                + venue_return_opportunities["Default Venue"].astype(str)
+            )
+
+                selected_game = st.selectbox(
+                "Select game to review",
+                venue_return_opportunities["Game Label"]
+            )
+
+                selected_row = venue_return_opportunities[
+                venue_return_opportunities["Game Label"] == selected_game
+            ].iloc[0]
+
+                st.write("Selected Game")
+                st.write(f"Competition: {selected_row['Competition']}")
+                st.write(f"Round: {selected_row['Round']}")
+                st.write(f"Home: {selected_row['Home']}")
+                st.write(f"Away: {selected_row['Away']}")
+                st.write(f"Current Venue: {selected_row['Venue']}")
+                st.write(f"Default Venue: {selected_row['Default Venue']}")
+                st.write(f"Spare Capacity: {selected_row['Spare Capacity']}")
+
+                            # ==================================================
+            # GAMES CURRENTLY AT DEFAULT VENUE
+            # ==================================================
+
+                st.write("Games currently at default venue this round:")
+
+            current_default_venue_games = df[
+                (df["Round"].astype(str) == str(selected_row["Round"])) &
+                (df["Venue"].astype(str) == str(selected_row["Default Venue"])) &
+                (df["Home"].astype(str).str.lower() != "bye") &
+                (df["Away"].astype(str).str.lower() != "bye")
+            ].copy()
+
+            if len(current_default_venue_games) == 0:
+
+                st.info("No games currently scheduled at this venue in this round.")
+
+            else:
+
+                st.dataframe(
+                    current_default_venue_games[
+                        [
+                            "Competition",
+                            "Round",
+                            "Home",
+                            "Away",
+                            "Venue"
+                        ]
+                    ]
+                )
+
+            action = st.radio(
+                "Decision",
+                [
+                    "Return to default venue",
+                    "Keep current venue / override"
+                ]
+            )
+
+            override_reason = st.selectbox(
+                "Override Reason",
+                [
+                    "",
+                    "Capacity",
+                    "Council Closure",
+                    "Turf Closure",
+                    "Finals",
+                    "Tournament",
+                    "School Event",
+                    "Manual Decision",
+                    "Other"
+                ]
+            )
+
+            override_notes = st.text_input(
+                "Override Notes"
+            )
+
+            st.info(
+                "This assistant records the decision on screen only for now. "
+                "A future version will write this into the exported fixture."
+            )
+
             # ==================================================
             # MANUAL OVERRIDE REPORT
             # ==================================================
 
-                st.subheader("Manual Override Report")
+            st.subheader("Manual Override Report")
 
-                override_games = df[
+            override_games = df[
     df["Override"]
     .astype(str)
     .str.lower()
     == "yes"
 ].copy()
 
-                if len(override_games) == 0:
+            if len(override_games) == 0:
 
                     st.success(
         "No manual overrides found."
     )
 
-                else:
+            else:
 
                     st.warning(
         f"Manual overrides found: {len(override_games)}"
