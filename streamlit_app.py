@@ -812,21 +812,40 @@ if uploaded_file is not None:
                 ]
             )
 
-        # ==================================================
+                # ==================================================
         # VENUE RETURN OPPORTUNITIES
         # ==================================================
 
-            st.subheader("Venue Return Opportunities")
+        st.subheader("Venue Return Opportunities")
 
-            venue_return_base = venue_exceptions.copy()
+        venue_return_base = venue_exceptions.copy()
 
-            if len(venue_return_base) == 0:
+        suppressed_returns = venue_return_base[
+            venue_return_base["Override"]
+            .astype(str)
+            .str.lower()
+            == "yes"
+        ].copy()
 
-                st.success("No venue return opportunities found.")
+        venue_return_base = venue_return_base[
+            venue_return_base["Override"]
+            .astype(str)
+            .str.lower()
+            != "yes"
+        ].copy()
 
-            else:
+        if len(suppressed_returns) > 0:
+            st.info(
+                f"Venue return opportunities suppressed by override: {len(suppressed_returns)}"
+            )
 
-                venue_return_base["Round Key"] = (
+        if len(venue_return_base) == 0:
+
+            st.success("No venue return opportunities found.")
+
+        else:
+
+            venue_return_base["Round Key"] = (
                 venue_return_base["Round"].astype(str)
             )
 
@@ -911,7 +930,10 @@ if uploaded_file is not None:
                             "Venue",
                             "Games At Default Venue",
                             "Default Venue Capacity",
-                            "Spare Capacity"
+                            "Spare Capacity",
+                            "Override",
+                            "Override Reason",
+                            "Override Notes"
                         ]
                     ].rename(
                         columns={
@@ -920,10 +942,9 @@ if uploaded_file is not None:
                     )
                 )
 
-
             # ==================================================
-# MANUAL OVERRIDE REPORT
-# ==================================================
+            # MANUAL OVERRIDE REPORT
+            # ==================================================
 
                 st.subheader("Manual Override Report")
 

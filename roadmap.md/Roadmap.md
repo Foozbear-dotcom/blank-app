@@ -68,7 +68,7 @@ V1.8.3 XLSX multi-sheet export
 - Fixture health score
 - Auto seeding suggestions
 - Export Architecture
-V1.8 Data Rules
+# V1.8 Data Rules
 
 Rule 1:
 Bye rows are fixture rows.
@@ -78,3 +78,20 @@ Bye rows are not games.
 
 Rule 3:
 Capacity, venue and matchup calculations ignore Bye rows.
+
+# Business Rules
+
+Rule 1
+Bye rows are fixture rows, not games.
+
+Rule 2
+Home venue comes from Seedings file.
+
+Rule 3
+Venue exceptions compare Default Venue to Current Venue.
+
+Rule 4
+Manual Overrides suppress venue return recommendations.
+
+Rule 5
+Capacity checks ignore Bye rows.
