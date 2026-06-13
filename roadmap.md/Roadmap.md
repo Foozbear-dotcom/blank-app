@@ -42,6 +42,9 @@ V1.6.3 Fixture vs Seedings Validation
 
 ### V1.8
 - Download Reports (XLSX)
+V1.8.1 Competition upload export
+V1.8.2 Club view export
+V1.8.3 XLSX multi-sheet export
 
 ### V1.9
 - Export Fixture CSV
