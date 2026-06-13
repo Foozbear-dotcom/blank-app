@@ -1192,3 +1192,12 @@ if uploaded_file is not None:
     st.subheader("Rounds Found")
     st.write(f"Total Rounds: {len(clean_rounds)}")
     st.text(", ".join(map(str, clean_rounds)))
+
+    # Download Fixture Button #
+
+    st.download_button(
+    label="Download Fixture CSV",
+    data=df.to_csv(index=False),
+    file_name="fixture_export.csv",
+    mime="text/csv"
+)
