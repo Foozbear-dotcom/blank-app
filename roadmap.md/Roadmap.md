@@ -52,8 +52,26 @@ V1.8.3 XLSX multi-sheet export
 
 ### V1.9
 - Export Fixture CSV
+V1.9.1 - Override aware venue returns
+V1.9.2 Override Assistant UI
+- Select Venue Return Opportunity
+- Show current venue usage
+- Show games at default venue
+- Override Reason dropdown
+- Notes field
+- Mark as Override
+V1.9.3 Override-aware Export
 
-### V2.0
+# V2.0 Venue Change Reasons
+
+Internal Reason
+Public Reason
+Included in Club Export
+Included in Venue Change Summary
+
+
+
+### V3.0
 - Draft Fixture Generator
 
 ---
