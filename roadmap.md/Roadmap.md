@@ -69,6 +69,10 @@ Public Reason
 Included in Club Export
 Included in Venue Change Summary
 
+V2.0 Override Assistant UI
+V2.0.1 Venue Evidence View
+V2.0.2 Venue snapshot and override assistant improvements ***
+
 
 
 ### V3.0
