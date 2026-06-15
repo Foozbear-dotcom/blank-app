@@ -1423,11 +1423,36 @@ if uploaded_file is not None:
     st.write(f"Total Rounds: {len(clean_rounds)}")
     st.text(", ".join(map(str, clean_rounds)))
 
-    # Download Fixture Button #
 
-    st.download_button(
-    label="Download Fixture CSV",
-    data=df.to_csv(index=False),
-    file_name="fixture_export.csv",
-    mime="text/csv"
-)
+    # ==================================================
+    # EXPORT OPTIONS
+    # ==================================================
+
+    st.subheader("Export Options")
+
+    export_type = st.selectbox(
+        "Select Export Type",
+        [
+            "Basic Fixture CSV",
+            "Competition Upload CSV",
+            "Club View Export",
+            "Internal Review Export"
+        ]
+    )
+
+    if export_type == "Basic Fixture CSV":
+
+        export_df = df.copy()
+
+        st.download_button(
+            label="Download Basic Fixture CSV",
+            data=export_df.to_csv(index=False),
+            file_name="basic_fixture_export.csv",
+            mime="text/csv"
+        )
+
+    else:
+
+        st.info(
+            "This export profile is planned for a future version."
+        )
