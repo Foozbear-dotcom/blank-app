@@ -78,6 +78,34 @@ V2.0.2 Venue snapshot and override assistant improvements ***
 ### V3.0
 - Draft Fixture Generator
 
+V3.1 - Fixture Repair Assistant
+
+Purpose:
+Repair an existing fixture with the minimum possible disruption.
+
+Inputs:
+- Fixture
+- Team constraints
+- Bye targets
+- Matchup targets
+- Venue capacities
+- Locked rounds
+
+Outputs:
+- Suggested repairs
+- Number of rounds affected
+- Teams affected
+- Before/after comparison
+- Repair score
+
+Goals:
+✓ Minimise rounds changed
+✓ Minimise teams affected
+✓ Preserve completed rounds
+✓ Preserve locked games
+✓ Restore fixture balance
+
+
 ---
 
 ## Ideas Parking Lot

@@ -61,6 +61,32 @@ if uploaded_file is not None:
 )
 
     # ==================================================
+    # NORMALISE UPLOAD TEMPLATE COLUMNS
+    # ==================================================
+
+    df = df.rename(
+        columns={
+            "Grade": "Competition",
+            "Game date": "Date"
+        }
+    )
+
+    # Current app still expects "Venue" to mean field code.
+    # If both Venue and Field exist, use Field as Venue for now.
+    if "Field" in df.columns:
+        df["Venue Name"] = df["Venue"]
+        df["Venue"] = df["Field"]
+
+    # Clean Round if it comes through as "Round 1"
+    if "Round" in df.columns:
+        df["Round"] = (
+            df["Round"]
+            .astype(str)
+            .str.replace("Round", "", case=False, regex=False)
+            .str.strip()
+        )
+
+    # ==================================================
     # FIXTURE UPLOAD VALIDATION
     # ==================================================
 
