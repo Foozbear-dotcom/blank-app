@@ -46,6 +46,14 @@ Example:
 |--------|----------|-------|
 |
 """)
+# ==================================================
+# SESSION STATE SETUP
+# ==================================================
+
+if "override_decisions" not in st.session_state:
+    st.session_state["override_decisions"] = []
+
+
 if uploaded_file is not None:
 
     if uploaded_file.name.endswith(".csv"):
@@ -56,9 +64,9 @@ if uploaded_file is not None:
     st.success("File Uploaded Successfully")
 
     fixture_stage = st.radio(
-    "Fixture Stage",
-    ["Draft Fixture", "Final Fixture"]
-)
+        "Fixture Stage",
+        ["Draft Fixture", "Final Fixture"]
+    )
 
     # ==================================================
     # NORMALISE UPLOAD TEMPLATE COLUMNS
@@ -71,13 +79,10 @@ if uploaded_file is not None:
         }
     )
 
-    # Current app still expects "Venue" to mean field code.
-    # If both Venue and Field exist, use Field as Venue for now.
     if "Field" in df.columns:
         df["Venue Name"] = df["Venue"]
         df["Venue"] = df["Field"]
 
-    # Clean Round if it comes through as "Round 1"
     if "Round" in df.columns:
         df["Round"] = (
             df["Round"]
@@ -123,6 +128,18 @@ if uploaded_file is not None:
         st.write(missing_fixture_columns)
         st.stop()
 
+    # ==================================================
+    # OPTIONAL OVERRIDE COLUMNS
+    # ==================================================
+
+    if "Override" not in df.columns:
+        df["Override"] = "No"
+
+    if "Override Reason" not in df.columns:
+        df["Override Reason"] = ""
+
+    if "Override Notes" not in df.columns:
+        df["Override Notes"] = ""
 
     # File Summary
     st.subheader("File Summary")
@@ -147,17 +164,20 @@ if uploaded_file is not None:
     clean_rounds = [int(r) for r in rounds]
 
 # ==================================================
-# OPTIONAL OVERRIDE COLUMNS
+# FILE DEPENDENCY WARNINGS
 # ==================================================
 
-    if "Override" not in df.columns:
-        df["Override"] = "No"
+if uploaded_file is not None and seedings_file is None:
 
-    if "Override Reason" not in df.columns:
-        df["Override Reason"] = ""
+    st.warning(
+        "Seedings file not uploaded. Venue Exception, Venue Return and Override reports require a Seedings file."
+    )
 
-    if "Override Notes" not in df.columns:
-        df["Override Notes"] = ""
+if uploaded_file is not None and venue_config_file is None:
+
+    st.warning(
+        "Venue Config file not uploaded. Venue Capacity reports require a Venue Config file."
+    )
 
     # ==================================================
     # FIXTURE HEALTH DASHBOARD
@@ -1093,6 +1113,22 @@ if uploaded_file is not None:
             override_notes = st.text_input(
                 "Override Notes"
             )
+
+        if st.button("Save Override Decision"):
+
+            st.session_state["override_decisions"].append({
+        "Competition": selected_row["Competition"],
+        "Round": selected_row["Round"],
+        "Home": selected_row["Home"],
+        "Away": selected_row["Away"],
+        "Current Venue": selected_row["Venue"],
+        "Default Venue": selected_row["Default Venue"],
+        "Decision": action,
+        "Override Reason": override_reason,
+        "Override Notes": override_notes
+    })
+
+            st.success("Override decision saved for this session.")
 
             st.info(
                 "This assistant records the decision on screen only for now. "
