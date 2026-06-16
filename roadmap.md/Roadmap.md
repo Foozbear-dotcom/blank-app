@@ -80,6 +80,26 @@ V2.0.2 Venue snapshot and override assistant improvements ***
 
 V3.1 - Fixture Repair Assistant
 
+V3.2 - Venue Overload Repair Assistant
+
+Core repair logic:
+- Identify overloaded venue/rounds
+- List games causing overload
+- Find return games between same teams
+- Test home/away flips
+- Check venue capacity impact
+- Check home/away balance impact
+- Check club grouping impact
+- Respect locked/completed rounds
+- Score each repair option
+- Recommend lowest-disruption fix
+
+Preferred fixes:
+1. Flip return game if clean
+2. Move to available home venue
+3. Move to neutral venue
+4. Flag for manual decision
+
 Purpose:
 Repair an existing fixture with the minimum possible disruption.
 

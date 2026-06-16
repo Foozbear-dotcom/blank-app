@@ -452,6 +452,66 @@ if uploaded_file is not None:
             f"Venue capacity issues found: {len(over_capacity)}"
         )
         st.dataframe(over_capacity) 
+
+    # ==================================================
+    # VENUE OVERLOAD INVESTIGATION REPORT
+    # ==================================================
+
+    st.subheader("Venue Overload Investigation Report")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues to investigate."
+        )
+
+    else:
+
+        overload_games = capacity_games.merge(
+            over_capacity[
+                [
+                    "Round",
+                    "Venue",
+                    "Games Scheduled",
+                    "Capacity"
+                ]
+            ],
+            on=[
+                "Round",
+                "Venue"
+            ],
+            how="inner"
+        )
+
+        overload_games = overload_games.sort_values(
+            [
+                "Round",
+                "Venue",
+                "Competition",
+                "Home",
+                "Away"
+            ]
+        )
+
+        st.warning(
+            f"Games at overloaded venues: {len(overload_games)}"
+        )
+
+        st.dataframe(
+            overload_games[
+                [
+                    "Round",
+                    "Venue",
+                    "Games Scheduled",
+                    "Capacity",
+                    "Competition",
+                    "Home",
+                    "Away"
+                ]
+            ],
+            hide_index=True
+        )
+
      # ==================================================
     # SEEDINGS UPLOAD
     # ==================================================
