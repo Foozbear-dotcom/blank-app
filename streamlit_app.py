@@ -167,21 +167,21 @@ if uploaded_file is not None:
 # FILE DEPENDENCY WARNINGS
 # ==================================================
 
-if uploaded_file is not None and seedings_file is None:
+    if uploaded_file is not None and seedings_file is None:
 
-    st.warning(
-        "Seedings file not uploaded. Venue Exception, Venue Return and Override reports require a Seedings file."
+        st.warning(
+        "Seedings file not uploaded. Venue Exception, Venue Return and Override reports will not be available."
     )
 
-if uploaded_file is not None and venue_config_file is None:
+    if uploaded_file is not None and venue_config_file is None:
 
-    st.warning(
-        "Venue Config file not uploaded. Venue Capacity reports require a Venue Config file."
-    )
+        st.warning(
+            "Venue Config file not uploaded. Venue Capacity reports require a Venue Config file."
+        )
 
-    # ==================================================
-    # FIXTURE HEALTH DASHBOARD
-    # ==================================================
+# ==================================================
+# FIXTURE HEALTH DASHBOARD
+# ==================================================
 
     st.header("Fixture Health Dashboard")
 
@@ -1030,9 +1030,39 @@ if uploaded_file is not None and venue_config_file is None:
                 st.write(f"Away: {selected_row['Away']}")
                 st.write(f"Current Venue: {selected_row['Venue']}")
              
-            # ==================================================
-            # VENUE SNAPSHOT
-            # ==================================================
+
+        # ==================================================
+        # SAVED OVERRIDE DECISIONS
+        # ==================================================
+
+        st.subheader("Saved Override Decisions")
+
+        if len(st.session_state["override_decisions"]) == 0:
+
+            st.info(
+                "No override decisions saved this session."
+            )
+
+        else:
+
+            saved_override_df = pd.DataFrame(
+                st.session_state["override_decisions"]
+            )
+
+            st.dataframe(
+                saved_override_df,
+                hide_index=True
+            )
+
+            st.download_button(
+                label="Download Override Decisions CSV",
+                data=saved_override_df.to_csv(index=False),
+                file_name="override_decisions.csv",
+                mime="text/csv"
+            )
+                # ==================================================
+                # VENUE SNAPSHOT
+                # ==================================================
 
             st.subheader("Venue Snapshot")
 
@@ -1040,21 +1070,21 @@ if uploaded_file is not None and venue_config_file is None:
 
             with snapshot_col1:
                 st.metric(
-                    "Default Venue",
-                    selected_row["Default Venue"]
-                )
+                        "Default Venue",
+                        selected_row["Default Venue"]
+                    )
 
             with snapshot_col2:
                 st.metric(
-                    "Games Scheduled",
-                    selected_row["Games At Default Venue"]
-                )
+                        "Games Scheduled",
+                        selected_row["Games At Default Venue"]
+                    )
 
             with snapshot_col3:
                 st.metric(
-                    "Spare Capacity",
-                    selected_row["Spare Capacity"]
-                )
+                        "Spare Capacity",
+                        selected_row["Spare Capacity"]
+                    )
 
                             # ==================================================
             # GAMES CURRENTLY AT DEFAULT VENUE
@@ -1062,7 +1092,7 @@ if uploaded_file is not None and venue_config_file is None:
 
                 st.write("Games currently at default venue this round:")
 
-            current_default_venue_games = df[
+                current_default_venue_games = df[
                 (df["Round"].astype(str) == str(selected_row["Round"])) &
                 (df["Venue"].astype(str) == str(selected_row["Default Venue"])) &
                 (df["Home"].astype(str).str.lower() != "bye") &
@@ -1087,7 +1117,7 @@ if uploaded_file is not None and venue_config_file is None:
                     ]
                 )
 
-            action = st.radio(
+                action = st.radio(
                 "Decision",
                 [
                     "Return to default venue",
@@ -1095,7 +1125,7 @@ if uploaded_file is not None and venue_config_file is None:
                 ]
             )
 
-            override_reason = st.selectbox(
+                override_reason = st.selectbox(
                 "Override Reason",
                 [
                     "",
@@ -1110,13 +1140,14 @@ if uploaded_file is not None and venue_config_file is None:
                 ]
             )
 
-            override_notes = st.text_input(
+                override_notes = st.text_input(
                 "Override Notes"
             )
 
-        if st.button("Save Override Decision"):
+        
+            if st.button("Save Override Decision"):
 
-            st.session_state["override_decisions"].append({
+                st.session_state["override_decisions"].append({
         "Competition": selected_row["Competition"],
         "Round": selected_row["Round"],
         "Home": selected_row["Home"],
@@ -1177,14 +1208,14 @@ if uploaded_file is not None and venue_config_file is None:
     # HOME / AWAY BALANCE REPORT
     # ==================================================
 
-    st.subheader("Home / Away Balance Report")
+            st.subheader("Home / Away Balance Report")
 
-    fixture_games = df[
+        fixture_games = df[
         (df["Home"].astype(str).str.lower() != "bye") &
         (df["Away"].astype(str).str.lower() != "bye")
     ].copy()
 
-    home_counts = (
+        home_counts = (
         fixture_games
         .groupby(["Competition", "Home"])
         .size()
@@ -1192,7 +1223,7 @@ if uploaded_file is not None and venue_config_file is None:
         .rename(columns={"Home": "Team"})
     )
 
-    away_counts = (
+        away_counts = (
         fixture_games
         .groupby(["Competition", "Away"])
         .size()
@@ -1200,27 +1231,27 @@ if uploaded_file is not None and venue_config_file is None:
         .rename(columns={"Away": "Team"})
     )
 
-    home_away_report = pd.merge(
+        home_away_report = pd.merge(
         home_counts,
         away_counts,
         on=["Competition", "Team"],
         how="outer"
     ).fillna(0)
 
-    home_away_report["Home Games"] = (
+        home_away_report["Home Games"] = (
         home_away_report["Home Games"].astype(int)
     )
 
-    home_away_report["Away Games"] = (
+        home_away_report["Away Games"] = (
         home_away_report["Away Games"].astype(int)
     )
 
-    home_away_report["Difference"] = (
+        home_away_report["Difference"] = (
         home_away_report["Home Games"]
         - home_away_report["Away Games"]
     )
 
-    def home_away_status(diff):
+def home_away_status(diff):
 
         if abs(diff) >= 4:
             return "Critical"
@@ -1231,164 +1262,163 @@ if uploaded_file is not None and venue_config_file is None:
         else:
             return "OK"
 
-    home_away_report["Status"] = (
+        home_away_report["Status"] = (
         home_away_report["Difference"]
         .apply(home_away_status)
     )
 
-    home_away_report = home_away_report.sort_values(
+        home_away_report = home_away_report.sort_values(
         ["Competition", "Status", "Team"]
     )
 
-    st.dataframe(home_away_report)
+        st.dataframe(home_away_report)
 
-    critical_home_away = home_away_report[
+        critical_home_away = home_away_report[
         home_away_report["Status"] == "Critical"
     ]
 
-    warning_home_away = home_away_report[
+        warning_home_away = home_away_report[
         home_away_report["Status"] == "Warning"
     ]
 
-    if len(critical_home_away) > 0:
+        if len(critical_home_away) > 0:
 
-        st.error(
+            st.error(
             f"Critical home/away imbalances: {len(critical_home_away)}"
         )
 
         st.dataframe(critical_home_away)
 
-    if len(warning_home_away) > 0:
+        if len(warning_home_away) > 0:
 
-        st.warning(
+            st.warning(
             f"Home/away warnings: {len(warning_home_away)}"
         )
 
-        st.dataframe(warning_home_away)
+            st.dataframe(warning_home_away)
 
-    if (
+        if (
         len(critical_home_away) == 0
         and
         len(warning_home_away) == 0
     ):
 
-        st.success(
+            st.success(
             "No significant home/away imbalances found."
         )
     # Potential Data Issues
-    st.subheader("Potential Data Issues")
+        st.subheader("Potential Data Issues")
 
-    missing_venues = df["Venue"].isna().sum()
-    missing_home = df["Home"].isna().sum()
-    missing_away = df["Away"].isna().sum()
+        missing_venues = df["Venue"].isna().sum()
+        missing_home = df["Home"].isna().sum()
+        missing_away = df["Away"].isna().sum()
 
-    st.write(f"Missing Venues: {missing_venues}")
-    st.write(f"Missing Home Teams: {missing_home}")
-    st.write(f"Missing Away Teams: {missing_away}")
+        st.write(f"Missing Venues: {missing_venues}")
+        st.write(f"Missing Home Teams: {missing_home}")
+        st.write(f"Missing Away Teams: {missing_away}")
 
     # Bye Report
-    st.subheader("Bye Report")
+        st.subheader("Bye Report")
 
-    home_byes = df[df["Home"].astype(str).str.lower() == "bye"]["Away"].astype(str)
-    away_byes = df[df["Away"].astype(str).str.lower() == "bye"]["Home"].astype(str)
+        home_byes = df[df["Home"].astype(str).str.lower() == "bye"]["Away"].astype(str)
+        away_byes = df[df["Away"].astype(str).str.lower() == "bye"]["Home"].astype(str)
 
-    bye_teams = pd.concat([home_byes, away_byes])
-    bye_counts = bye_teams.value_counts().sort_index()
+        bye_teams = pd.concat([home_byes, away_byes])
+        bye_counts = bye_teams.value_counts().sort_index()
 
-    st.write(f"Total Byes Found: {len(bye_teams)}")
-    st.dataframe(bye_counts.rename("Bye Count"))
+        st.write(f"Total Byes Found: {len(bye_teams)}")
+        st.dataframe(bye_counts.rename("Bye Count"))
 
     # Competition-Specific Bye Report
-    st.subheader("Competition-Specific Bye Report")
+        st.subheader("Competition-Specific Bye Report")
 
-    comp_home_byes = df[
-        df["Home"].astype(str).str.lower() == "bye"
-    ][["Competition", "Away"]].copy()
+        comp_home_byes = df[
+                df["Home"].astype(str).str.lower() == "bye"
+            ][["Competition", "Away"]].copy()
 
-    comp_home_byes = comp_home_byes.rename(columns={"Away": "Team"})
+        comp_home_byes = comp_home_byes.rename(columns={"Away": "Team"})
 
-    comp_away_byes = df[
-        df["Away"].astype(str).str.lower() == "bye"
-    ][["Competition", "Home"]].copy()
+        comp_away_byes = df[
+                df["Away"].astype(str).str.lower() == "bye"
+            ][["Competition", "Home"]].copy()
 
-    comp_away_byes = comp_away_byes.rename(columns={"Home": "Team"})
+        comp_away_byes = comp_away_byes.rename(columns={"Home": "Team"})
 
-    comp_byes = pd.concat([comp_home_byes, comp_away_byes])
-    comp_byes["Team"] = comp_byes["Team"].astype(str)
+        comp_byes = pd.concat([comp_home_byes, comp_away_byes])
+        comp_byes["Team"] = comp_byes["Team"].astype(str)
 
-    comp_bye_report = (
-        comp_byes
-        .groupby(["Competition", "Team"])
-        .size()
-        .reset_index(name="Bye Count")
-        .sort_values(["Competition", "Team"])
-    )
+        comp_bye_report = (
+                comp_byes
+                .groupby(["Competition", "Team"])
+                .size()
+                .reset_index(name="Bye Count")
+                .sort_values(["Competition", "Team"])
+            )
 
-    st.dataframe(comp_bye_report)
+        st.dataframe(comp_bye_report)
 
-    st.subheader("Competition Expectations")
+        st.subheader("Competition Expectations")
 
-    for competition in competitions:
-        st.write(competition)
-        
+        for competition in competitions:
+                st.write(competition)
+                
     # ==================================================
     # MATCHUP FREQUENCY REPORT
     # ==================================================
 
-    st.subheader("Matchup Frequency Report")
+        st.subheader("Matchup Frequency Report")
 
-    games_only = df[
-        (df["Home"].astype(str).str.lower() != "bye") &
-        (df["Away"].astype(str).str.lower() != "bye")
-    ].copy()
+        games_only = df[
+                (df["Home"].astype(str).str.lower() != "bye") &
+                (df["Away"].astype(str).str.lower() != "bye")
+            ].copy()
 
-    games_only["Team A"] = games_only.apply(
-        lambda row: min(str(row["Home"]), str(row["Away"])),
-        axis=1
-    )
+        games_only["Team A"] = games_only.apply(
+                lambda row: min(str(row["Home"]), str(row["Away"])),
+                axis=1
+            )
 
-    games_only["Team B"] = games_only.apply(
-        lambda row: max(str(row["Home"]), str(row["Away"])),
-        axis=1
-    )
+        games_only["Team B"] = games_only.apply(
+                lambda row: max(str(row["Home"]), str(row["Away"])),
+                axis=1
+            )
 
-    matchup_report = (
-        games_only
-        .groupby(["Competition", "Team A", "Team B"])
-        .size()
-        .reset_index(name="Times Played")
-        .sort_values(["Competition", "Times Played", "Team A", "Team B"], ascending=[True, False, True, True])
-    )
+        matchup_report = (
+                games_only
+                .groupby(["Competition", "Team A", "Team B"])
+                .size()
+                .reset_index(name="Times Played")
+                .sort_values(["Competition", "Times Played", "Team A", "Team B"], ascending=[True, False, True, True])
+            )
 
-    st.dataframe(matchup_report)
+        st.dataframe(matchup_report)
 
-    # ==================================================
-    # TRIPLE-UP WARNING
-    # ==================================================
+            # ==================================================
+            # TRIPLE-UP WARNING
+            # ==================================================
 
-    st.subheader("Triple-Up Warnings")
+        st.subheader("Triple-Up Warnings")
+        triple_ups = matchup_report[
+                matchup_report["Times Played"] >= 3
+            ]
 
-    triple_ups = matchup_report[
-        matchup_report["Times Played"] >= 3
-    ]
+        if len(triple_ups) == 0:
+                st.success("No triple-ups found.")
+        else:
+                st.warning(f"Triple-ups found: {len(triple_ups)}")
+                st.dataframe(triple_ups)
 
-    if len(triple_ups) == 0:
-        st.success("No triple-ups found.")
-    else:
-        st.warning(f"Triple-ups found: {len(triple_ups)}")
-        st.dataframe(triple_ups)
+            # ==================================================
+            # MISSING MATCHUP REPORT
+            # ==================================================
 
-    # ==================================================
-    # MISSING MATCHUP REPORT
-    # ==================================================
+        st.subheader("Missing Matchup Report")
 
-    st.subheader("Missing Matchup Report")
+        missing_matchups = []
 
-    missing_matchups = []
+        for competition in competitions:
 
-    for competition in competitions:
-
-        comp_games = games_only[
+            comp_games = games_only[
             games_only["Competition"] == competition
         ]
 
@@ -1419,76 +1449,76 @@ if uploaded_file is not None and venue_config_file is None:
                         "Team B": team_b
                     })
 
-    missing_matchups_df = pd.DataFrame(missing_matchups)
+        missing_matchups_df = pd.DataFrame(missing_matchups)
 
-    if len(missing_matchups_df) == 0:
-        st.success("No missing matchups found.")
-    else:
-        st.warning(
+        if len(missing_matchups_df) == 0:
+                st.success("No missing matchups found.")
+        else:
+            st.warning(
             f"Missing matchups found: {len(missing_matchups_df)}"
         )
-        st.dataframe(missing_matchups_df)
+            st.dataframe(missing_matchups_df)
 
     # Preview
-    st.subheader("Preview")
-    st.dataframe(df.head())
+            st.subheader("Preview")
+            st.dataframe(df.head())
 
-    # Competitions Found
-    st.subheader("Competitions Found")
-    st.write(f"Total Competitions: {len(competitions)}")
+                # Competitions Found
+            st.subheader("Competitions Found")
+            st.write(f"Total Competitions: {len(competitions)}")
 
-    for comp in competitions:
-        st.write(comp)
+            for comp in competitions:
+                    st.write(comp)
 
-    # Teams Found
-    st.subheader("Teams Found")
-    st.write(f"Total Teams: {len(teams)}")
+                # Teams Found
+            st.subheader("Teams Found")
+            st.write(f"Total Teams: {len(teams)}")
 
-    for team in teams:
-        st.write(team)
+            for team in teams:
+                    st.write(team)
 
-    # Venues Found
-    st.subheader("Venues Found")
-    st.write(f"Total Venues: {len(venues)}")
+                # Venues Found
+            st.subheader("Venues Found")
+            st.write(f"Total Venues: {len(venues)}")
 
-    for venue in venues:
-        st.write(venue)
+            for venue in venues:
+                    st.write(venue)
 
-    # Rounds Found
-    st.subheader("Rounds Found")
-    st.write(f"Total Rounds: {len(clean_rounds)}")
-    st.text(", ".join(map(str, clean_rounds)))
+                # Rounds Found
+            st.subheader("Rounds Found")
+            st.write(f"Total Rounds: {len(clean_rounds)}")
+            st.text(", ".join(map(str, clean_rounds)))
 
 
-    # ==================================================
-    # EXPORT OPTIONS
-    # ==================================================
+                # ==================================================
+                # EXPORT OPTIONS
+                # ==================================================
 
-    st.subheader("Export Options")
+            st.subheader("Export Options")
 
-    export_type = st.selectbox(
-        "Select Export Type",
-        [
-            "Basic Fixture CSV",
-            "Competition Upload CSV",
-            "Club View Export",
-            "Internal Review Export"
-        ]
-    )
+            export_type = st.selectbox(
+                    "Select Export Type",
+                    [
+                        "Basic Fixture CSV",
+                        "Competition Upload CSV",
+                        "Club View Export",
+                        "Internal Review Export"
+                    ]
+                )
 
-    if export_type == "Basic Fixture CSV":
+            if export_type == "Basic Fixture CSV":
 
-        export_df = df.copy()
+                    export_df = df.copy()
 
-        st.download_button(
-            label="Download Basic Fixture CSV",
-            data=export_df.to_csv(index=False),
-            file_name="basic_fixture_export.csv",
-            mime="text/csv"
-        )
+                    st.download_button(
+                        label="Download Basic Fixture CSV",
+                        data=export_df.to_csv(index=False),
+                        file_name="basic_fixture_export.csv",
+                        mime="text/csv"
+                    )
 
-    else:
+            else:
 
-        st.info(
-            "This export profile is planned for a future version."
-        )
+                    st.info(
+                        "This export profile is planned for a future version."
+                    )
