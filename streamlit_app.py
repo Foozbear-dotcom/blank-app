@@ -652,6 +652,107 @@ if uploaded_file is not None:
             hide_index=True
         )
 
+    # ==================================================
+    # FLIP IMPACT ANALYSIS
+    # ==================================================
+
+    st.subheader("Flip Impact Analysis")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no flip impacts to analyse."
+        )
+
+    else:
+
+        impact_rows = []
+
+        for _, row in flip_candidate_report.iterrows():
+
+            if row["Flip Candidate"] != "Yes":
+
+                impact_rows.append({
+                    "Competition": row["Competition"],
+                    "Home": row["Home"],
+                    "Away": row["Away"],
+                    "Recommendation": "Not Eligible",
+                    "Reason": row["Reason"]
+                })
+
+                continue
+
+            return_round = row["Return Round"]
+            return_venue = row["Return Venue"]
+
+            venue_capacity_row = venue_round_usage[
+                (venue_round_usage["Round"].astype(str) == str(return_round))
+                &
+                (venue_round_usage["Venue"].astype(str) == str(return_venue))
+            ]
+
+            if len(venue_capacity_row) == 0:
+
+                games_scheduled = 0
+
+                capacity = venue_slots.get(
+                    str(return_venue),
+                    2
+                )
+
+            else:
+
+                games_scheduled = int(
+                    venue_capacity_row.iloc[0]["Games Scheduled"]
+                )
+
+                capacity = int(
+                    venue_capacity_row.iloc[0]["Capacity"]
+                )
+
+            spare_capacity = capacity - games_scheduled
+
+            if spare_capacity >= 1:
+
+                recommendation = "Recommended"
+
+                reason = (
+                    "Flip candidate exists and return venue has capacity."
+                )
+
+            else:
+
+                recommendation = "Review"
+
+                reason = (
+                    "Return venue may not have spare capacity."
+                )
+
+            impact_rows.append({
+                "Competition": row["Competition"],
+                "Home": row["Home"],
+                "Away": row["Away"],
+                "Overload Round": row["Overload Round"],
+                "Return Round": return_round,
+                "Return Venue": return_venue,
+                "Return Venue Capacity": capacity,
+                "Games Scheduled": games_scheduled,
+                "Spare Capacity": spare_capacity,
+                "Recommendation": recommendation,
+                "Reason": reason
+            })
+
+        impact_report = pd.DataFrame(
+            impact_rows
+        )
+
+        st.dataframe(
+            impact_report,
+            hide_index=True
+        )
+
+
+
 
 
     # ==================================================
