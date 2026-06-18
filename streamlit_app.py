@@ -226,7 +226,7 @@ if uploaded_file is not None:
     summary_df = pd.DataFrame(competition_summary)
     st.dataframe(summary_df)
 
-        # ==================================================
+    # ==================================================
     # COMPETITION RULES REPORT
     # ==================================================
 
@@ -581,7 +581,80 @@ if uploaded_file is not None:
             hide_index=True
         )
 
-     # ==================================================
+    # ==================================================
+    # FLIP CANDIDATE DETECTION
+    # ==================================================
+
+    st.subheader("Flip Candidate Detection")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no flip candidates to investigate."
+        )
+
+    else:
+
+        flip_candidate_report = return_fixture_report.copy()
+
+        flip_candidate_report["Overload Round Number"] = (
+            flip_candidate_report["Overload Round"]
+            .astype(str)
+            .str.replace("Round", "", case=False, regex=False)
+            .str.strip()
+            .astype(int)
+        )
+
+        flip_candidate_report["Return Round Number"] = pd.to_numeric(
+            flip_candidate_report["Return Round"],
+            errors="coerce"
+        )
+
+        flip_candidate_report["Flip Candidate"] = flip_candidate_report.apply(
+            lambda row: "Yes"
+            if (
+                row["Return Found"] == "Yes"
+                and
+                pd.notna(row["Return Round Number"])
+                and
+                row["Return Round Number"] > row["Overload Round Number"]
+            )
+            else "No",
+            axis=1
+        )
+
+        flip_candidate_report["Reason"] = flip_candidate_report.apply(
+            lambda row: "Return fixture after overloaded round"
+            if row["Flip Candidate"] == "Yes"
+            else (
+                "No return fixture found"
+                if row["Return Found"] == "No"
+                else "Return fixture is not after overloaded round"
+            ),
+            axis=1
+        )
+
+        st.dataframe(
+            flip_candidate_report[
+                [
+                    "Competition",
+                    "Overload Round",
+                    "Overload Venue",
+                    "Home",
+                    "Away",
+                    "Return Found",
+                    "Return Round",
+                    "Return Venue",
+                    "Flip Candidate",
+                    "Reason"
+                ]
+            ],
+            hide_index=True
+        )
+
+
+
+    # ==================================================
     # SEEDINGS UPLOAD
     # ==================================================
 
@@ -592,9 +665,9 @@ if uploaded_file is not None:
         else:
             seedings_df = pd.read_excel(seedings_file)
 
-        # ==================================================
-        # SEEDINGS UPLOAD VALIDATION
-        # ==================================================
+    # ==================================================
+    # SEEDINGS UPLOAD VALIDATION
+    # ==================================================
 
         st.subheader("Seedings Upload Validation")
 
@@ -987,7 +1060,7 @@ if uploaded_file is not None:
                 ]
             )
 
-                # ==================================================
+        # ==================================================
         # VENUE RETURN OPPORTUNITIES
         # ==================================================
 
@@ -1189,9 +1262,9 @@ if uploaded_file is not None:
                 file_name="override_decisions.csv",
                 mime="text/csv"
             )
-                # ==================================================
-                # VENUE SNAPSHOT
-                # ==================================================
+            # ==================================================
+            # VENUE SNAPSHOT
+            # ==================================================
 
             st.subheader("Venue Snapshot")
 
@@ -1215,7 +1288,7 @@ if uploaded_file is not None:
                         selected_row["Spare Capacity"]
                     )
 
-                            # ==================================================
+            # ==================================================
             # GAMES CURRENTLY AT DEFAULT VENUE
             # ==================================================
 
@@ -1522,9 +1595,9 @@ def home_away_status(diff):
 
         st.dataframe(matchup_report)
 
-            # ==================================================
-            # TRIPLE-UP WARNING
-            # ==================================================
+        # ==================================================
+        # TRIPLE-UP WARNING
+        # ==================================================
 
         st.subheader("Triple-Up Warnings")
         triple_ups = matchup_report[
@@ -1619,9 +1692,9 @@ def home_away_status(diff):
             st.text(", ".join(map(str, clean_rounds)))
 
 
-                # ==================================================
-                # EXPORT OPTIONS
-                # ==================================================
+            # ==================================================
+            # EXPORT OPTIONS
+            # ==================================================
 
             st.subheader("Export Options")
 
