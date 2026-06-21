@@ -451,7 +451,37 @@ if uploaded_file is not None:
         st.warning(
             f"Venue capacity issues found: {len(over_capacity)}"
         )
-        st.dataframe(over_capacity) 
+        st.dataframe(over_capacity)
+
+    # ==================================================
+    # REPAIR ANALYSIS SETTINGS
+    # ==================================================
+
+    st.subheader("Repair Analysis Settings")
+
+    repair_mode = st.radio(
+        "Repair timing",
+        [
+            "Pre-season / all rounds adjustable",
+            "Season in progress / earlier rounds locked"
+        ]
+    )
+
+    current_round = None
+
+    if repair_mode == "Season in progress / earlier rounds locked":
+
+        current_round = int(
+    st.number_input(
+        "Current round",
+        min_value=1,
+        max_value=int(max(clean_rounds)),
+        value=1,
+        step=1
+    )
+)
+
+
 
     # ==================================================
     # VENUE OVERLOAD INVESTIGATION REPORT
@@ -610,26 +640,78 @@ if uploaded_file is not None:
             errors="coerce"
         )
 
-        flip_candidate_report["Flip Candidate"] = flip_candidate_report.apply(
-            lambda row: "Yes"
-            if (
-                row["Return Found"] == "Yes"
-                and
-                pd.notna(row["Return Round Number"])
-                and
-                row["Return Round Number"] > row["Overload Round Number"]
-            )
-            else "No",
-            axis=1
-        )
+        def assess_flip_candidate(row):
 
-        flip_candidate_report["Reason"] = flip_candidate_report.apply(
-            lambda row: "Return fixture after overloaded round"
-            if row["Flip Candidate"] == "Yes"
-            else (
-                "No return fixture found"
-                if row["Return Found"] == "No"
-                else "Return fixture is not after overloaded round"
+            if row["Return Found"] != "Yes":
+                return (
+                    "No Return Fixture",
+                    "No return fixture found",
+                    "Closed"
+                )
+
+            if pd.isna(row["Return Round Number"]):
+                return (
+                    "No Return Fixture",
+                    "Return round missing or invalid",
+                    "Closed"
+                )
+
+            overload_round_number = int(row["Overload Round Number"])
+            return_round_number = int(row["Return Round Number"])
+
+            if repair_mode == "Pre-season / all rounds adjustable":
+
+                return (
+                    "Flip Candidate",
+                    "All rounds available for repair",
+                    "Open"
+                )
+
+            current_round_number = int(current_round)
+
+            overload_played = (
+                overload_round_number < current_round_number
+            )
+
+            return_played = (
+                return_round_number < current_round_number
+            )
+
+            if not overload_played and not return_played:
+
+                return (
+                    "Flip Candidate",
+                    "Both fixtures still in future",
+                    "Open"
+                )
+
+            if overload_played and not return_played:
+
+                return (
+                    "Late Repair Candidate",
+                    "Original fixture played, return fixture still available",
+                    "Limited"
+                )
+
+            if overload_played and return_played:
+
+                return (
+                    "Closed",
+                    "Both fixtures already played",
+                    "Closed"
+                )
+
+            return (
+                "Review",
+                "Manual review required",
+                "Limited"
+            )
+
+        flip_candidate_report[
+            ["Flip Candidate", "Reason", "Repair Window"]
+        ] = flip_candidate_report.apply(
+            lambda row: pd.Series(
+                assess_flip_candidate(row)
             ),
             axis=1
         )
@@ -646,27 +728,29 @@ if uploaded_file is not None:
                     "Return Round",
                     "Return Venue",
                     "Flip Candidate",
+                    "Repair Window",
                     "Reason"
                 ]
             ],
-            hide_index=True
+            hide_index=True,
+            use_container_width=True
         )
 
     # ==================================================
     # FLIP IMPACT ANALYSIS
     # ==================================================
 
-    st.subheader("Flip Impact Analysis")
+        st.subheader("Flip Impact Analysis")
 
-    if len(over_capacity) == 0:
+        if len(over_capacity) == 0:
 
-        st.success(
+            st.success(
             "No overloaded venues, so no flip impacts to analyse."
         )
 
-    else:
+        else:
 
-        impact_rows = []
+            impact_rows = []
 
         for _, row in flip_candidate_report.iterrows():
 
@@ -676,6 +760,10 @@ if uploaded_file is not None:
                     "Competition": row["Competition"],
                     "Home": row["Home"],
                     "Away": row["Away"],
+                    "Overload Round": row.get("Overload Round", ""),
+                    "Return Round": row.get("Return Round", ""),
+                    "Return Venue": row.get("Return Venue", ""),
+                    "Spare Capacity": "",
                     "Recommendation": "Not Eligible",
                     "Reason": row["Reason"]
                 })
@@ -746,11 +834,25 @@ if uploaded_file is not None:
             impact_rows
         )
 
-        st.dataframe(
-            impact_report,
-            hide_index=True
-        )
+        impact_display = impact_report[
+            [
+                "Competition",
+                "Home",
+                "Away",
+                "Overload Round",
+                "Return Round",
+                "Return Venue",
+                "Spare Capacity",
+                "Recommendation",
+                "Reason"
+            ]
+        ]
 
+        st.dataframe(
+            impact_display,
+            hide_index=True,
+            use_container_width=True
+        )
 
 
 
