@@ -757,21 +757,24 @@ if uploaded_file is not None:
     # FLIP IMPACT ANALYSIS
     # ==================================================
 
-        st.subheader("Flip Impact Analysis")
+    st.subheader("Flip Impact Analysis")
 
-        if len(over_capacity) == 0:
+    if len(over_capacity) == 0:
 
-            st.success(
+        st.success(
             "No overloaded venues, so no flip impacts to analyse."
         )
 
-        else:
+    else:
 
-            impact_rows = []
+        impact_rows = []
 
         for _, row in flip_candidate_report.iterrows():
 
-            if row["Flip Candidate"] != "Yes":
+            if row["Flip Candidate"] not in [
+                "Flip Candidate",
+                "Late Repair Candidate"
+            ]:
 
                 impact_rows.append({
                     "Competition": row["Competition"],
@@ -780,6 +783,8 @@ if uploaded_file is not None:
                     "Overload Round": row.get("Overload Round", ""),
                     "Return Round": row.get("Return Round", ""),
                     "Return Venue": row.get("Return Venue", ""),
+                    "Return Found": row.get("Return Found", ""),
+                    "Repair Window": row.get("Repair Window", ""),
                     "Spare Capacity": "",
                     "Recommendation": "Not Eligible",
                     "Reason": row["Reason"]
@@ -822,7 +827,7 @@ if uploaded_file is not None:
                 recommendation = "Recommended"
 
                 reason = (
-                    "Flip candidate exists and return venue has capacity."
+                    "Repair candidate exists and return venue has capacity."
                 )
 
             else:
@@ -840,6 +845,8 @@ if uploaded_file is not None:
                 "Overload Round": row["Overload Round"],
                 "Return Round": return_round,
                 "Return Venue": return_venue,
+                "Return Found": row["Return Found"],
+                "Repair Window": row["Repair Window"],
                 "Return Venue Capacity": capacity,
                 "Games Scheduled": games_scheduled,
                 "Spare Capacity": spare_capacity,
@@ -859,6 +866,8 @@ if uploaded_file is not None:
                 "Overload Round",
                 "Return Round",
                 "Return Venue",
+                "Return Found",
+                "Repair Window",
                 "Spare Capacity",
                 "Recommendation",
                 "Reason"
@@ -871,6 +880,81 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+    # ==================================================
+    # REPAIR SCORE REPORT
+    # ==================================================
+
+    st.subheader("Repair Score Report")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no repair scores to calculate."
+        )
+
+    else:
+
+        repair_score_report = impact_report.copy()
+
+        def calculate_repair_score(row):
+
+            score = 0
+
+            if row.get("Repair Window", "") == "Open":
+                score += 40
+
+            elif row.get("Repair Window", "") == "Limited":
+                score += 20
+
+            if row.get("Return Found", "") == "Yes":
+                score += 20
+
+            try:
+                spare_capacity = int(row.get("Spare Capacity", 0))
+            except:
+                spare_capacity = 0
+
+            if spare_capacity >= 2:
+                score += 30
+
+            elif spare_capacity == 1:
+                score += 20
+
+            if row.get("Recommendation", "") == "Recommended":
+                score += 10
+
+            return score
+
+        repair_score_report["Repair Score"] = (
+            repair_score_report.apply(
+                calculate_repair_score,
+                axis=1
+            )
+        )
+
+        repair_score_report = repair_score_report.sort_values(
+            "Repair Score",
+            ascending=False
+        )
+
+        st.dataframe(
+            repair_score_report[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Overload Round",
+                    "Return Round",
+                    "Return Venue",
+                    "Spare Capacity",
+                    "Recommendation",
+                    "Repair Score",
+                    "Reason"
+                ]
+            ],
+            hide_index=True,
+            use_container_width=True
+        )
 
 
 
