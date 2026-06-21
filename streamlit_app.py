@@ -716,6 +716,23 @@ if uploaded_file is not None:
             axis=1
         )
 
+        status_order = {
+            "Flip Candidate": 1,
+            "Late Repair Candidate": 2,
+            "Review": 3,
+            "Closed": 4,
+            "No Return Fixture": 5
+        }
+
+        flip_candidate_report["Sort Order"] = (
+            flip_candidate_report["Flip Candidate"]
+            .map(status_order)
+        )
+
+        flip_candidate_report = flip_candidate_report.sort_values(
+            ["Sort Order", "Competition", "Overload Round"]
+        )
+
         st.dataframe(
             flip_candidate_report[
                 [
