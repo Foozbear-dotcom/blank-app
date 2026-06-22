@@ -880,6 +880,10 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+
+
+
+
     # ==================================================
     # REPAIR SCORE REPORT
     # ==================================================
@@ -925,11 +929,9 @@ if uploaded_file is not None:
 
             return score
 
-        repair_score_report["Repair Score"] = (
-            repair_score_report.apply(
-                calculate_repair_score,
-                axis=1
-            )
+        repair_score_report["Repair Score"] = repair_score_report.apply(
+            calculate_repair_score,
+            axis=1
         )
 
         repair_score_report = repair_score_report.sort_values(
@@ -946,6 +948,8 @@ if uploaded_file is not None:
                     "Overload Round",
                     "Return Round",
                     "Return Venue",
+                    "Return Found",
+                    "Repair Window",
                     "Spare Capacity",
                     "Recommendation",
                     "Repair Score",
@@ -955,6 +959,47 @@ if uploaded_file is not None:
             hide_index=True,
             use_container_width=True
         )
+
+    # ==================================================
+    # TOP REPAIR CANDIDATES
+    # ==================================================
+
+    st.subheader("🏆 Top Repair Candidates")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no repair candidates found."
+        )
+
+    else:
+
+        top_candidates = repair_score_report.copy()
+
+        top_candidates = top_candidates.sort_values(
+            "Repair Score",
+            ascending=False
+        )
+
+        top_candidates = top_candidates.head(10)
+
+        st.dataframe(
+            top_candidates[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Overload Round",
+                    "Return Round",
+                    "Return Venue",
+                    "Repair Score",
+                    "Recommendation"
+                ]
+            ],
+            hide_index=True,
+            use_container_width=True
+        )
+
 
 
 
