@@ -1620,7 +1620,130 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+    # ==================================================
+    # REPAIR INTELLIGENCE SCORE
+    # ==================================================
 
+    st.subheader("Repair Intelligence Score")
+
+    if len(over_capacity) == 0:
+
+        st.info(
+            "No repair intelligence score available because no venue capacity issues were found."
+        )
+
+    else:
+
+        intelligence_report = repair_score_report.copy()
+
+        intelligence_report = intelligence_report.merge(
+            home_away_repair_impact[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Balance Impact"
+                ]
+            ],
+            on=["Competition", "Home", "Away"],
+            how="left"
+        )
+
+        intelligence_report = intelligence_report.merge(
+            matchup_impact_report[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Matchup Impact"
+                ]
+            ],
+            on=["Competition", "Home", "Away"],
+            how="left"
+        )
+
+        intelligence_report = intelligence_report.merge(
+            bye_impact_report[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Bye Impact"
+                ]
+            ],
+            on=["Competition", "Home", "Away"],
+            how="left"
+        )
+
+        intelligence_report = intelligence_report.merge(
+            venue_group_impact_report[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Venue Group Impact"
+                ]
+            ],
+            on=["Competition", "Home", "Away"],
+            how="left"
+        )
+
+        def calculate_intelligence_score(row):
+
+            score = int(row["Repair Score"])
+
+            if row.get("Balance Impact", "") == "Improves Balance":
+                score += 10
+            elif row.get("Balance Impact", "") == "Worsens Balance":
+                score -= 10
+
+            if row.get("Matchup Impact", "") == "Healthy":
+                score += 10
+            elif row.get("Matchup Impact", "") == "Overplayed":
+                score -= 10
+
+            if row.get("Bye Impact", "") == "Neutral":
+                score += 5
+            elif row.get("Bye Impact", "") == "Review Bye Balance":
+                score -= 5
+
+            if row.get("Venue Group Impact", "") == "Supports Venue Grouping":
+                score += 10
+            elif row.get("Venue Group Impact", "") == "No Club Grouping Found":
+                score -= 5
+
+            return score
+
+        intelligence_report["Repair Intelligence Score"] = (
+            intelligence_report.apply(
+                calculate_intelligence_score,
+                axis=1
+            )
+        )
+
+        intelligence_report = intelligence_report.sort_values(
+            "Repair Intelligence Score",
+            ascending=False
+        )
+
+        st.dataframe(
+            intelligence_report[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Repair Score",
+                    "Repair Intelligence Score",
+                    "Balance Impact",
+                    "Matchup Impact",
+                    "Bye Impact",
+                    "Venue Group Impact",
+                    "Suggested Action"
+                ]
+            ],
+            hide_index=True,
+            use_container_width=True
+        )
 
 
 
