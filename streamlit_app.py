@@ -934,9 +934,28 @@ if uploaded_file is not None:
             axis=1
         )
 
-        repair_score_report = repair_score_report.sort_values(
-            "Repair Score",
-            ascending=False
+        def suggest_repair_action(row):
+
+            if row["Repair Score"] >= 90:
+                return "Strong candidate - review first"
+
+            elif row["Repair Score"] >= 70:
+                return "Good candidate - check details"
+
+            elif row["Repair Score"] >= 40:
+                return "Possible repair - manual review"
+
+            elif row.get("Repair Window", "") == "Closed":
+                return "No action - repair window closed"
+
+            else:
+                return "Manual repair required"
+
+        repair_score_report["Suggested Action"] = (
+            repair_score_report.apply(
+                suggest_repair_action,
+                axis=1
+            )
         )
 
         st.dataframe(
@@ -953,6 +972,7 @@ if uploaded_file is not None:
                     "Spare Capacity",
                     "Recommendation",
                     "Repair Score",
+                    "Suggested Action",
                     "Reason"
                 ]
             ],
