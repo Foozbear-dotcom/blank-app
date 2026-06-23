@@ -1510,6 +1510,120 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
+    # ==================================================
+    # VENUE GROUP / CLUB IMPACT
+    # ==================================================
+
+    st.subheader("Venue Group / Club Impact")
+
+    if len(over_capacity) == 0:
+
+        st.info(
+            "No venue group impact available because no venue capacity issues were found."
+        )
+
+    else:
+
+        venue_group_rows = []
+
+        games_only_grouping = df[
+            (df["Home"].astype(str).str.lower() != "bye")
+            &
+            (df["Away"].astype(str).str.lower() != "bye")
+        ].copy()
+
+        games_only_grouping["Venue Group"] = (
+            games_only_grouping["Venue"]
+            .astype(str)
+            .map(venue_groups)
+            .fillna(games_only_grouping["Venue"].astype(str))
+        )
+
+        for _, row in repair_score_report.iterrows():
+
+            competition = row["Competition"]
+            home_team = row["Home"]
+            away_team = row["Away"]
+            overload_round = row["Overload Round"]
+            return_round = row["Return Round"]
+            return_venue = row["Return Venue"]
+
+            current_round_games = games_only_grouping[
+                games_only_grouping["Round"].astype(str)
+                == str(overload_round)
+            ].copy()
+
+            return_round_games = games_only_grouping[
+                games_only_grouping["Round"].astype(str)
+                == str(return_round)
+            ].copy()
+
+            current_home_games = current_round_games[
+                (current_round_games["Home"].astype(str) == str(home_team))
+                |
+                (current_round_games["Away"].astype(str) == str(home_team))
+            ]
+
+            current_away_games = current_round_games[
+                (current_round_games["Home"].astype(str) == str(away_team))
+                |
+                (current_round_games["Away"].astype(str) == str(away_team))
+            ]
+
+            return_venue_group = (
+                venue_groups.get(
+                    str(return_venue),
+                    str(return_venue)
+                )
+            )
+
+            games_at_return_group = return_round_games[
+                return_round_games["Venue Group"].astype(str)
+                == str(return_venue_group)
+            ]
+
+            if len(games_at_return_group) == 0:
+
+                venue_group_impact = "No Club Grouping Found"
+
+            elif len(games_at_return_group) >= 2:
+
+                venue_group_impact = "Supports Venue Grouping"
+
+            else:
+
+                venue_group_impact = "Limited Grouping Impact"
+
+            venue_group_rows.append({
+                "Competition": competition,
+                "Home": home_team,
+                "Away": away_team,
+                "Repair Score": row["Repair Score"],
+                "Overload Round": overload_round,
+                "Return Round": return_round,
+                "Return Venue": return_venue,
+                "Return Venue Group": return_venue_group,
+                "Games At Return Venue Group": len(games_at_return_group),
+                "Venue Group Impact": venue_group_impact
+            })
+
+        venue_group_impact_report = pd.DataFrame(
+            venue_group_rows
+        )
+
+        st.dataframe(
+            venue_group_impact_report.sort_values(
+                ["Repair Score"],
+                ascending=False
+            ),
+            hide_index=True,
+            use_container_width=True
+        )
+
+
+
+
+
 
 
 
