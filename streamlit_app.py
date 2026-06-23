@@ -1934,6 +1934,7 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
+            # ==================================================
             # SIMULATION OUTCOME SUMMARY
             # ==================================================
 
@@ -2034,6 +2035,119 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
+            # ==================================================
+            # MATCHUP SIMULATION OUTCOME
+            # ==================================================
+
+            st.subheader("Matchup Simulation Outcome")
+
+            simulated_games_only = simulated_df[
+                (simulated_df["Home"].astype(str).str.lower() != "bye")
+                &
+                (simulated_df["Away"].astype(str).str.lower() != "bye")
+            ].copy()
+
+            simulated_games_only["Matchup Key"] = simulated_games_only.apply(
+                lambda row: " vs ".join(
+                    sorted([
+                        str(row["Home"]),
+                        str(row["Away"])
+                    ])
+                ),
+                axis=1
+            )
+
+            original_games_only = df[
+                (df["Home"].astype(str).str.lower() != "bye")
+                &
+                (df["Away"].astype(str).str.lower() != "bye")
+            ].copy()
+
+            original_games_only["Matchup Key"] = original_games_only.apply(
+                lambda row: " vs ".join(
+                    sorted([
+                        str(row["Home"]),
+                        str(row["Away"])
+                    ])
+                ),
+                axis=1
+            )
+
+            sim_matchup_key = " vs ".join(
+                sorted([
+                    str(sim_home),
+                    str(sim_away)
+                ])
+            )
+
+            before_matchups = original_games_only[
+                (original_games_only["Competition"].astype(str) == str(sim_competition))
+                &
+                (original_games_only["Matchup Key"] == sim_matchup_key)
+            ]
+
+            after_matchups = simulated_games_only[
+                (simulated_games_only["Competition"].astype(str) == str(sim_competition))
+                &
+                (simulated_games_only["Matchup Key"] == sim_matchup_key)
+            ]
+
+            before_matchup_count = len(before_matchups)
+            after_matchup_count = len(after_matchups)
+
+            matchup_col1, matchup_col2, matchup_col3 = st.columns(3)
+
+            with matchup_col1:
+                st.metric(
+                    "Meetings Before",
+                    before_matchup_count
+                )
+
+            with matchup_col2:
+                st.metric(
+                    "Meetings After",
+                    after_matchup_count
+                )
+
+            with matchup_col3:
+                st.metric(
+                    "Change",
+                    after_matchup_count - before_matchup_count
+                )
+
+            if after_matchup_count < before_matchup_count:
+
+                st.success(
+                    "Simulation reduces repeated matchups."
+                )
+
+            elif after_matchup_count == before_matchup_count:
+
+                st.info(
+                    "Simulation does not change the number of meetings between these teams."
+                )
+
+            else:
+
+                st.warning(
+                    "Simulation increases repeated matchups."
+                )
+
+            st.write("Matchups After Simulation")
+
+            st.dataframe(
+                after_matchups[
+                    [
+                        "Competition",
+                        "Round",
+                        "Home",
+                        "Away",
+                        "Venue"
+                    ]
+                ],
+                hide_index=True,
+                use_container_width=True
+            )
 
 
 
