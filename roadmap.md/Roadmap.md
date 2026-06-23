@@ -94,6 +94,13 @@ Core repair logic:
 - Score each repair option
 - Recommend lowest-disruption fix
 
+Release Candidate 1
+
+Single Workbook Upload
+Best Repair Dashboard
+Export Recommended Repairs
+
+
 Preferred fixes:
 1. Flip return game if clean
 2. Move to available home venue
