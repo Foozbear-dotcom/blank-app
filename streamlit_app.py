@@ -1745,7 +1745,72 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+    # ==================================================
+    # FINAL REPAIR RECOMMENDATION ENGINE
+    # ==================================================
 
+    st.subheader("Final Repair Recommendation Engine")
+
+    if len(over_capacity) == 0:
+
+        st.info(
+            "No final repair recommendations available because no venue capacity issues were found."
+        )
+
+    else:
+
+        final_recommendation_report = intelligence_report.copy()
+
+        def final_recommendation(row):
+
+            score = int(row["Repair Intelligence Score"])
+
+            if score >= 130:
+                return "Strongly Recommended"
+
+            elif score >= 100:
+                return "Recommended"
+
+            elif score >= 70:
+                return "Review"
+
+            else:
+                return "Not Recommended"
+
+        final_recommendation_report["Final Recommendation"] = (
+            final_recommendation_report.apply(
+                final_recommendation,
+                axis=1
+            )
+        )
+
+        final_recommendation_report = final_recommendation_report.sort_values(
+            "Repair Intelligence Score",
+            ascending=False
+        )
+
+        st.dataframe(
+            final_recommendation_report[
+                [
+                    "Competition",
+                    "Home",
+                    "Away",
+                    "Overload Round",
+                    "Return Round",
+                    "Return Venue",
+                    "Repair Score",
+                    "Repair Intelligence Score",
+                    "Final Recommendation",
+                    "Suggested Action",
+                    "Balance Impact",
+                    "Matchup Impact",
+                    "Bye Impact",
+                    "Venue Group Impact"
+                ]
+            ],
+            hide_index=True,
+            use_container_width=True
+        )
 
 
 
