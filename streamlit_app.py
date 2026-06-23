@@ -1393,7 +1393,122 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+    # ==================================================
+    # BYE REPAIR IMPACT
+    # ==================================================
 
+    st.subheader("Bye Repair Impact")
+
+    if len(over_capacity) == 0:
+
+        st.info(
+            "No bye repair impact available because no venue capacity issues were found."
+        )
+
+    else:
+
+        bye_impact_rows = []
+
+        home_byes = df[
+            df["Home"].astype(str).str.lower() == "bye"
+        ][["Competition", "Away"]].copy()
+
+        home_byes = home_byes.rename(
+            columns={"Away": "Team"}
+        )
+
+        away_byes = df[
+            df["Away"].astype(str).str.lower() == "bye"
+        ][["Competition", "Home"]].copy()
+
+        away_byes = away_byes.rename(
+            columns={"Home": "Team"}
+        )
+
+        bye_games = pd.concat(
+            [
+                home_byes,
+                away_byes
+            ]
+        )
+
+        if len(bye_games) == 0:
+
+            st.info("No byes found in fixture.")
+
+        else:
+
+            bye_counts = (
+                bye_games
+                .groupby(["Competition", "Team"])
+                .size()
+                .reset_index(name="Bye Count")
+            )
+
+            for _, row in repair_score_report.iterrows():
+
+                competition = row["Competition"]
+                home_team = row["Home"]
+                away_team = row["Away"]
+
+                home_bye_record = bye_counts[
+                    (bye_counts["Competition"] == competition)
+                    &
+                    (bye_counts["Team"] == home_team)
+                ]
+
+                away_bye_record = bye_counts[
+                    (bye_counts["Competition"] == competition)
+                    &
+                    (bye_counts["Team"] == away_team)
+                ]
+
+                home_bye_count = (
+                    int(home_bye_record.iloc[0]["Bye Count"])
+                    if len(home_bye_record) > 0
+                    else 0
+                )
+
+                away_bye_count = (
+                    int(away_bye_record.iloc[0]["Bye Count"])
+                    if len(away_bye_record) > 0
+                    else 0
+                )
+
+                if home_bye_count == away_bye_count:
+
+                    bye_impact = "Neutral"
+
+                elif abs(home_bye_count - away_bye_count) == 1:
+
+                    bye_impact = "Minor Difference"
+
+                else:
+
+                    bye_impact = "Review Bye Balance"
+
+                bye_impact_rows.append({
+                    "Competition": competition,
+                    "Home": home_team,
+                    "Away": away_team,
+                    "Repair Score": row["Repair Score"],
+                    "Home Bye Count": home_bye_count,
+                    "Away Bye Count": away_bye_count,
+                    "Bye Impact": bye_impact
+                })
+
+            bye_impact_report = pd.DataFrame(
+                bye_impact_rows
+            )
+
+            st.dataframe(
+                bye_impact_report.sort_values(
+                    ["Repair Score"],
+                    ascending=False
+                ),
+                hide_index=True,
+                use_container_width=True
+            )
 
 
 
