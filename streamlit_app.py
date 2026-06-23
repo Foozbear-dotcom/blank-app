@@ -1117,7 +1117,53 @@ if uploaded_file is not None:
             "Venue issues exist but no high-confidence repair candidates found."
         )
 
+    # ==================================================
+    # REPAIR EXPORT REPORT
+    # ==================================================
 
+    st.subheader("Repair Export Report")
+
+    if len(over_capacity) == 0:
+
+        st.info("No repair export available because no venue capacity issues were found.")
+
+    else:
+
+        repair_export = repair_score_report[
+            [
+                "Competition",
+                "Home",
+                "Away",
+                "Overload Round",
+                "Return Round",
+                "Return Venue",
+                "Return Found",
+                "Repair Window",
+                "Spare Capacity",
+                "Recommendation",
+                "Repair Score",
+                "Suggested Action",
+                "Reason"
+            ]
+        ].copy()
+
+        repair_export = repair_export.sort_values(
+            "Repair Score",
+            ascending=False
+        )
+
+        st.dataframe(
+            repair_export,
+            hide_index=True,
+            use_container_width=True
+        )
+
+        st.download_button(
+            label="Download Repair Export CSV",
+            data=repair_export.to_csv(index=False),
+            file_name="repair_export.csv",
+            mime="text/csv"
+        )
 
 
     # ==================================================
