@@ -2340,6 +2340,79 @@ if uploaded_file is not None:
                     "Simulation worsens home/away balance for the affected teams."
                 )
 
+            # ==================================================
+            # SIMULATION EXPORT
+            # ==================================================
+
+            st.subheader("Simulation Export")
+
+            simulation_export_rows = [
+                {
+                    "Section": "Selected Repair",
+                    "Metric": "Competition",
+                    "Before": "",
+                    "After": selected_repair["Competition"]
+                },
+                {
+                    "Section": "Selected Repair",
+                    "Metric": "Fixture",
+                    "Before": "",
+                    "After": f"{selected_repair['Home']} v {selected_repair['Away']}"
+                },
+                {
+                    "Section": "Selected Repair",
+                    "Metric": "Final Recommendation",
+                    "Before": "",
+                    "After": selected_repair["Final Recommendation"]
+                },
+                {
+                    "Section": "Venue Capacity",
+                    "Metric": "Over Capacity Issues",
+                    "Before": before_over_capacity_count,
+                    "After": after_over_capacity_count
+                },
+                {
+                    "Section": "Matchups",
+                    "Metric": "Meetings",
+                    "Before": before_matchup_count,
+                    "After": after_matchup_count
+                },
+                {
+                    "Section": "Home/Away",
+                    "Metric": f"{sim_home} H/A",
+                    "Before": f"{home_before_h}/{home_before_a}",
+                    "After": f"{home_after_h}/{home_after_a}"
+                },
+                {
+                    "Section": "Home/Away",
+                    "Metric": f"{sim_away} H/A",
+                    "Before": f"{away_before_h}/{away_before_a}",
+                    "After": f"{away_after_h}/{away_after_a}"
+                }
+            ]
+
+            simulation_export_df = pd.DataFrame(
+                simulation_export_rows
+            )
+
+            st.dataframe(
+                simulation_export_df,
+                hide_index=True,
+                use_container_width=True
+            )
+
+            st.download_button(
+                label="Download Simulation Summary CSV",
+                data=simulation_export_df.to_csv(index=False),
+                file_name="simulation_summary.csv",
+                mime="text/csv"
+            )
+
+
+
+
+
+
 
 
 
