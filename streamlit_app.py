@@ -2149,6 +2149,197 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
+            # ==================================================
+            # FIXTURE HEALTH OUTCOME SUMMARY
+            # ==================================================
+
+            st.subheader("Fixture Health Outcome Summary")
+
+            before_issue_count = before_over_capacity_count
+            after_issue_count = after_over_capacity_count
+
+            venue_capacity_result = (
+                "Improved"
+                if after_issue_count < before_issue_count
+                else "Unchanged"
+                if after_issue_count == before_issue_count
+                else "Worsened"
+            )
+
+            matchup_result = (
+                "Reduced repeated matchups"
+                if after_matchup_count < before_matchup_count
+                else "Unchanged"
+                if after_matchup_count == before_matchup_count
+                else "Increased repeated matchups"
+            )
+
+            health_col1, health_col2, health_col3 = st.columns(3)
+
+            with health_col1:
+                st.metric(
+                    "Venue Issues",
+                    f"{before_issue_count} → {after_issue_count}"
+                )
+
+            with health_col2:
+                st.metric(
+                    "Matchups",
+                    f"{before_matchup_count} → {after_matchup_count}"
+                )
+
+            with health_col3:
+                st.metric(
+                    "Overall Result",
+                    venue_capacity_result
+                )
+
+            st.write(
+                f"Venue capacity: {venue_capacity_result} "
+                f"({before_issue_count} issue/s before, {after_issue_count} after)."
+            )
+
+            st.write(
+                f"Matchup count: {matchup_result} "
+                f"({before_matchup_count} meeting/s before, {after_matchup_count} after)."
+            )
+
+            if venue_capacity_result == "Improved":
+
+                st.success(
+                    "Simulation appears to improve the fixture without permanently changing the uploaded file."
+                )
+
+            elif venue_capacity_result == "Unchanged":
+
+                st.info(
+                    "Simulation does not reduce the number of venue capacity issues."
+                )
+
+            else:
+
+                st.warning(
+                    "Simulation may create additional venue capacity issues."
+                )
+
+            # ==================================================
+            # HOME / AWAY SIMULATION OUTCOME
+            # ==================================================
+
+            st.subheader("Home / Away Simulation Outcome")
+
+            def get_home_away_counts(source_df, competition, team):
+
+                source_games = source_df[
+                    (source_df["Competition"].astype(str) == str(competition))
+                    &
+                    (source_df["Home"].astype(str).str.lower() != "bye")
+                    &
+                    (source_df["Away"].astype(str).str.lower() != "bye")
+                ].copy()
+
+                home_count = len(
+                    source_games[
+                        source_games["Home"].astype(str) == str(team)
+                    ]
+                )
+
+                away_count = len(
+                    source_games[
+                        source_games["Away"].astype(str) == str(team)
+                    ]
+                )
+
+                return home_count, away_count
+
+            home_before_h, home_before_a = get_home_away_counts(
+                df,
+                sim_competition,
+                sim_home
+            )
+
+            home_after_h, home_after_a = get_home_away_counts(
+                simulated_df,
+                sim_competition,
+                sim_home
+            )
+
+            away_before_h, away_before_a = get_home_away_counts(
+                df,
+                sim_competition,
+                sim_away
+            )
+
+            away_after_h, away_after_a = get_home_away_counts(
+                simulated_df,
+                sim_competition,
+                sim_away
+            )
+
+            ha_rows = [
+                {
+                    "Team": sim_home,
+                    "Before H/A": f"{home_before_h}/{home_before_a}",
+                    "After H/A": f"{home_after_h}/{home_after_a}",
+                    "Before Difference": home_before_h - home_before_a,
+                    "After Difference": home_after_h - home_after_a
+                },
+                {
+                    "Team": sim_away,
+                    "Before H/A": f"{away_before_h}/{away_before_a}",
+                    "After H/A": f"{away_after_h}/{away_after_a}",
+                    "Before Difference": away_before_h - away_before_a,
+                    "After Difference": away_after_h - away_after_a
+                }
+            ]
+
+            ha_simulation_df = pd.DataFrame(ha_rows)
+
+            before_total_imbalance = (
+                abs(home_before_h - home_before_a)
+                +
+                abs(away_before_h - away_before_a)
+            )
+
+            after_total_imbalance = (
+                abs(home_after_h - home_after_a)
+                +
+                abs(away_after_h - away_after_a)
+            )
+
+            if after_total_imbalance < before_total_imbalance:
+                ha_result = "Improved"
+
+            elif after_total_imbalance == before_total_imbalance:
+                ha_result = "Unchanged"
+
+            else:
+                ha_result = "Worsened"
+
+            st.dataframe(
+                ha_simulation_df,
+                hide_index=True,
+                use_container_width=True
+            )
+
+            if ha_result == "Improved":
+
+                st.success(
+                    "Simulation improves home/away balance for the affected teams."
+                )
+
+            elif ha_result == "Unchanged":
+
+                st.info(
+                    "Simulation does not change home/away balance for the affected teams."
+                )
+
+            else:
+
+                st.warning(
+                    "Simulation worsens home/away balance for the affected teams."
+                )
+
 
 
 
