@@ -1934,7 +1934,105 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
+            # SIMULATION OUTCOME SUMMARY
+            # ==================================================
 
+            st.subheader("Simulation Outcome Summary")
+
+            before_capacity = venue_round_usage[
+                (venue_round_usage["Round"].astype(str) == str(sim_overload_round))
+                &
+                (venue_round_usage["Venue"].astype(str) == str(selected_repair["Return Venue"]))
+            ]
+
+            # Recalculate venue capacity after simulation
+            simulated_capacity_games = simulated_df[
+                (simulated_df["Home"].astype(str).str.lower() != "bye")
+                &
+                (simulated_df["Away"].astype(str).str.lower() != "bye")
+            ].copy()
+
+            simulated_capacity_games["Venue"] = (
+                simulated_capacity_games["Venue"].astype(str)
+            )
+
+            simulated_venue_round_usage = (
+                simulated_capacity_games
+                .groupby(["Round", "Venue"])
+                .size()
+                .reset_index(name="Games Scheduled")
+            )
+
+            simulated_venue_round_usage["Capacity"] = (
+                simulated_venue_round_usage["Venue"]
+                .map(venue_slots)
+                .fillna(2)
+                .astype(int)
+            )
+
+            simulated_venue_round_usage["Status"] = simulated_venue_round_usage.apply(
+                lambda row: "Over Capacity"
+                if row["Games Scheduled"] > row["Capacity"]
+                else "OK",
+                axis=1
+            )
+
+            before_over_capacity_count = len(over_capacity)
+
+            after_over_capacity = simulated_venue_round_usage[
+                simulated_venue_round_usage["Status"] == "Over Capacity"
+            ]
+
+            after_over_capacity_count = len(after_over_capacity)
+
+            outcome_col1, outcome_col2, outcome_col3 = st.columns(3)
+
+            with outcome_col1:
+                st.metric(
+                    "Over Capacity Before",
+                    before_over_capacity_count
+                )
+
+            with outcome_col2:
+                st.metric(
+                    "Over Capacity After",
+                    after_over_capacity_count
+                )
+
+            with outcome_col3:
+                st.metric(
+                    "Change",
+                    before_over_capacity_count - after_over_capacity_count
+                )
+
+            if after_over_capacity_count < before_over_capacity_count:
+
+                st.success(
+                    "Simulation improves venue capacity issues."
+                )
+
+            elif after_over_capacity_count == before_over_capacity_count:
+
+                st.info(
+                    "Simulation does not change the number of venue capacity issues."
+                )
+
+            else:
+
+                st.warning(
+                    "Simulation creates additional venue capacity issues."
+                )
+
+            st.write("Venue Capacity After Simulation")
+
+            st.dataframe(
+                simulated_venue_round_usage.sort_values(
+                    ["Status", "Round", "Venue"],
+                    ascending=[True, True, True]
+                ),
+                hide_index=True,
+                use_container_width=True
+            )
 
 
 
