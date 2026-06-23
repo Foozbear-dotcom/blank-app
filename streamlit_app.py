@@ -2408,7 +2408,76 @@ if uploaded_file is not None:
                 mime="text/csv"
             )
 
+            # ==================================================
+            # SIMULATION DASHBOARD
+            # ==================================================
 
+            st.subheader("Simulation Dashboard")
+
+            if (
+                venue_capacity_result == "Improved"
+                and ha_result == "Improved"
+            ):
+                overall_simulation_result = "Strong Improvement"
+
+            elif venue_capacity_result == "Improved":
+                overall_simulation_result = "Improvement"
+
+            elif venue_capacity_result == "Unchanged":
+                overall_simulation_result = "Neutral"
+
+            else:
+                overall_simulation_result = "Review Required"
+
+            dash_col1, dash_col2, dash_col3, dash_col4 = st.columns(4)
+
+            with dash_col1:
+                st.metric(
+                    "Venue Issues",
+                    f"{before_over_capacity_count} → {after_over_capacity_count}"
+                )
+
+            with dash_col2:
+                st.metric(
+                    "Matchups",
+                    f"{before_matchup_count} → {after_matchup_count}"
+                )
+
+            with dash_col3:
+                st.metric(
+                    "Home/Away",
+                    ha_result
+                )
+
+            with dash_col4:
+                st.metric(
+                    "Recommendation",
+                    selected_repair["Final Recommendation"]
+                )
+
+            if overall_simulation_result == "Strong Improvement":
+
+                st.success(
+                    "Overall Simulation Result: Strong Improvement"
+                )
+
+            elif overall_simulation_result == "Improvement":
+
+                st.success(
+                    "Overall Simulation Result: Improvement"
+                )
+
+            elif overall_simulation_result == "Neutral":
+
+                st.info(
+                    "Overall Simulation Result: Neutral"
+                )
+
+            else:
+
+                st.warning(
+                    "Overall Simulation Result: Review Required"
+                )
 
 
 
