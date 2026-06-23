@@ -1164,6 +1164,238 @@ if uploaded_file is not None:
             file_name="repair_export.csv",
             mime="text/csv"
         )
+    # ==================================================
+    # HOME / AWAY REPAIR IMPACT
+    # ==================================================
+
+    st.subheader("Home / Away Repair Impact")
+
+    if len(over_capacity) == 0:
+
+        st.info("No home/away repair impact available because no venue capacity issues were found.")
+
+    else:
+
+        repair_impact_rows = []
+
+        games_only_home_away = df[
+            (df["Home"].astype(str).str.lower() != "bye") &
+            (df["Away"].astype(str).str.lower() != "bye")
+        ].copy()
+
+        current_home_counts = (
+            games_only_home_away
+            .groupby(["Competition", "Home"])
+            .size()
+            .reset_index(name="Current Home Games")
+            .rename(columns={"Home": "Team"})
+        )
+
+        current_away_counts = (
+            games_only_home_away
+            .groupby(["Competition", "Away"])
+            .size()
+            .reset_index(name="Current Away Games")
+            .rename(columns={"Away": "Team"})
+        )
+
+        current_balance = pd.merge(
+            current_home_counts,
+            current_away_counts,
+            on=["Competition", "Team"],
+            how="outer"
+        ).fillna(0)
+
+        current_balance["Current Home Games"] = current_balance["Current Home Games"].astype(int)
+        current_balance["Current Away Games"] = current_balance["Current Away Games"].astype(int)
+
+        for _, row in repair_score_report.iterrows():
+
+            if row["Repair Score"] <= 0:
+                continue
+
+            competition = row["Competition"]
+            home_team = row["Home"]
+            away_team = row["Away"]
+
+            home_balance = current_balance[
+                (current_balance["Competition"] == competition) &
+                (current_balance["Team"] == home_team)
+            ]
+
+            away_balance = current_balance[
+                (current_balance["Competition"] == competition) &
+                (current_balance["Team"] == away_team)
+            ]
+
+            if len(home_balance) == 0 or len(away_balance) == 0:
+                continue
+
+            home_current_home = int(home_balance.iloc[0]["Current Home Games"])
+            home_current_away = int(home_balance.iloc[0]["Current Away Games"])
+
+            away_current_home = int(away_balance.iloc[0]["Current Home Games"])
+            away_current_away = int(away_balance.iloc[0]["Current Away Games"])
+
+            home_current_diff = home_current_home - home_current_away
+            away_current_diff = away_current_home - away_current_away
+
+            # If flipped, current home team loses one home game and gains one away game.
+            home_projected_home = home_current_home - 1
+            home_projected_away = home_current_away + 1
+
+            # Current away team gains one home game and loses one away game.
+            away_projected_home = away_current_home + 1
+            away_projected_away = away_current_away - 1
+
+            home_projected_diff = home_projected_home - home_projected_away
+            away_projected_diff = away_projected_home - away_projected_away
+
+            current_total_imbalance = abs(home_current_diff) + abs(away_current_diff)
+            projected_total_imbalance = abs(home_projected_diff) + abs(away_projected_diff)
+
+            if projected_total_imbalance < current_total_imbalance:
+                impact = "Improves Balance"
+            elif projected_total_imbalance == current_total_imbalance:
+                impact = "Neutral"
+            else:
+                impact = "Worsens Balance"
+
+            repair_impact_rows.append({
+                "Competition": competition,
+                "Home": home_team,
+                "Away": away_team,
+                "Repair Score": row["Repair Score"],
+                "Repair Window": row["Repair Window"],
+                "Home Current H/A": f"{home_current_home}/{home_current_away}",
+                "Home Projected H/A": f"{home_projected_home}/{home_projected_away}",
+                "Away Current H/A": f"{away_current_home}/{away_current_away}",
+                "Away Projected H/A": f"{away_projected_home}/{away_projected_away}",
+                "Balance Impact": impact
+            })
+
+        if len(repair_impact_rows) == 0:
+
+            st.info("No home/away impact rows available.")
+
+        else:
+
+            home_away_repair_impact = pd.DataFrame(repair_impact_rows)
+
+            st.dataframe(
+                home_away_repair_impact.sort_values(
+                    ["Balance Impact", "Repair Score"],
+                    ascending=[True, False]
+                ),
+                hide_index=True,
+                use_container_width=True
+            )
+
+    # ==================================================
+    # MATCHUP REPAIR IMPACT
+    # ==================================================
+
+    st.subheader("Matchup Repair Impact")
+
+    if len(over_capacity) == 0:
+
+        st.info(
+            "No matchup repair impact available because no venue capacity issues were found."
+        )
+
+    else:
+
+        matchup_rows = []
+
+        games_only = df[
+            (df["Home"].astype(str).str.lower() != "bye")
+            &
+            (df["Away"].astype(str).str.lower() != "bye")
+        ].copy()
+
+        games_only["Matchup Key"] = games_only.apply(
+            lambda row: " vs ".join(
+                sorted([
+                    str(row["Home"]),
+                    str(row["Away"])
+                ])
+            ),
+            axis=1
+        )
+
+        matchup_counts = (
+            games_only
+            .groupby(
+                ["Competition", "Matchup Key"]
+            )
+            .size()
+            .reset_index(name="Current Meetings")
+        )
+
+        for _, row in repair_score_report.iterrows():
+
+            competition = row["Competition"]
+
+            matchup_key = " vs ".join(
+                sorted([
+                    str(row["Home"]),
+                    str(row["Away"])
+                ])
+            )
+
+            matchup_record = matchup_counts[
+                (matchup_counts["Competition"] == competition)
+                &
+                (matchup_counts["Matchup Key"] == matchup_key)
+            ]
+
+            if len(matchup_record) == 0:
+
+                current_meetings = 0
+
+            else:
+
+                current_meetings = int(
+                    matchup_record.iloc[0]["Current Meetings"]
+                )
+
+            if current_meetings <= 2:
+
+                matchup_impact = "Healthy"
+
+            elif current_meetings == 3:
+
+                matchup_impact = "Monitor"
+
+            else:
+
+                matchup_impact = "Overplayed"
+
+            matchup_rows.append({
+                "Competition": competition,
+                "Home": row["Home"],
+                "Away": row["Away"],
+                "Repair Score": row["Repair Score"],
+                "Current Meetings": current_meetings,
+                "Matchup Impact": matchup_impact
+            })
+
+        matchup_impact_report = pd.DataFrame(
+            matchup_rows
+        )
+
+        st.dataframe(
+            matchup_impact_report.sort_values(
+                ["Repair Score"],
+                ascending=False
+            ),
+            hide_index=True,
+            use_container_width=True
+        )
+
+
+
+
 
 
     # ==================================================
