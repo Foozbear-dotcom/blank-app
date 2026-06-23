@@ -3,23 +3,56 @@ import pandas as pd
 
 st.title("Fixture Analysis Platform")
 
-uploaded_file = st.file_uploader(
-    "Upload Fixture File",
-    type=["csv", "xlsx"]
+upload_mode = st.radio(
+    "Upload Mode",
+    [
+        "Single Workbook",
+        "Separate Files"
+    ]
 )
 
-venue_config_file = st.file_uploader(
-    "Upload Venue Config File",
-    type=["csv", "xlsx"]
-)
+master_workbook = None
+uploaded_file = None
+venue_config_file = None
+seedings_file = None
 
-seedings_file = st.file_uploader(
-    "Upload Seedings File",
-    type=["csv", "xlsx"]
-)
+if upload_mode == "Single Workbook":
+
+    master_workbook = st.file_uploader(
+        "Upload Fixture Workbook",
+        type=["xlsx"]
+    )
+
+else:
+
+    uploaded_file = st.file_uploader(
+        "Upload Fixture File",
+        type=["csv", "xlsx"]
+    )
+
+    venue_config_file = st.file_uploader(
+        "Upload Venue Config File",
+        type=["csv", "xlsx"]
+    )
+
+    seedings_file = st.file_uploader(
+        "Upload Seedings File",
+        type=["csv", "xlsx"]
+    )
+
 with st.expander("Upload File Requirements"):
 
     st.markdown("""
+### Single Workbook Required Sheets
+
+| Sheet |
+|----------|
+| Fixture |
+| Seedings |
+| VenueConfig |
+
+---
+
 ### Fixture File Required Columns
 
 | Column |
@@ -40,12 +73,18 @@ with st.expander("Upload File Requirements"):
 | Facility |
 | Slots |
 
-Example:
+---
 
-| Venue | Facility | Slots |
-|--------|----------|-------|
-|
+### Seedings Required Columns
+
+| Column |
+|----------|
+| Team |
+| Default Venue |
+| Venue Return |
+| Venue Exception |
 """)
+    
 # ==================================================
 # SESSION STATE SETUP
 # ==================================================
