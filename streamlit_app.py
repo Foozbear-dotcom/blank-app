@@ -3594,3 +3594,59 @@ def home_away_status(diff):
                     st.info(
                         "This export profile is planned for a future version."
                     )
+
+
+
+
+
+
+
+# ==================================================
+# DEVELOPMENT ROADMAP
+# ==================================================
+
+with st.expander("Development Roadmap"):
+
+    roadmap_data = pd.DataFrame([
+        ["V3.2.0", "Venue Overload Investigation", "Complete"],
+        ["V3.2.1", "Return Fixture Finder", "Complete"],
+        ["V3.2.2", "Flip Candidate Detection", "Complete"],
+        ["V3.2.2a", "Repair Window Classification", "Complete"],
+        ["V3.2.3", "Flip Impact Analysis", "Complete"],
+        ["V3.2.4", "Repair Score Report", "Complete"],
+        ["V3.2.5", "Top Repair Candidates", "Complete"],
+        ["V3.2.6", "Suggested Repair Actions", "Complete"],
+        ["V3.2.7", "Best Repair Summary", "Complete"],
+        ["V3.2.8", "Manager Summary", "Complete"],
+        ["V3.2.9", "Repair Export Report", "Complete"],
+        ["V3.3.0", "Home/Away Repair Impact", "Complete"],
+        ["V3.3.1", "Matchup Repair Impact", "Complete"],
+        ["V3.3.2", "Bye Repair Impact", "Complete"],
+        ["V3.3.3", "Venue Group Impact", "Complete"],
+        ["V3.3.4", "Repair Intelligence Score", "Complete"],
+        ["V3.3.5", "Final Recommendation Engine", "Complete"],
+        ["V3.4.0", "Repair Simulation", "Complete"],
+        ["V3.4.1", "Simulation Outcome Summary", "Complete"],
+        ["V3.4.2", "Home/Away Simulation Outcome", "Complete"],
+        ["V3.4.3", "Matchup Simulation Outcome", "Complete"],
+        ["V3.4.6", "Simulation Export", "Complete"],
+        ["V3.4.7", "Simulation Dashboard", "Complete"],
+        ["V3.4.8", "Compare Top Repairs", "Complete"],
+        ["V3.5.0", "Single Workbook Upload", "Planned"],
+        ["V3.5.1", "Best Repair Dashboard", "Planned"],
+        ["V3.5.2", "Export Recommended Repairs", "Planned"],
+        ["V4.0.0", "Fixture Generation Engine", "Future"],
+        ["V4.1.0", "Historical Seeding Optimiser", "Future"],
+        ["V4.2.0", "Venue Optimisation Engine", "Future"]
+    ],
+    columns=[
+        "Version",
+        "Feature",
+        "Status"
+    ])
+
+    st.dataframe(
+        roadmap_data,
+        hide_index=True,
+        use_container_width=True
+    )
