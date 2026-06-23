@@ -2479,6 +2479,45 @@ if uploaded_file is not None:
                     "Overall Simulation Result: Review Required"
                 )
 
+            # ==================================================
+            # COMPARE TOP REPAIRS
+            # ==================================================
+
+            st.subheader("Compare Top Repairs")
+
+            compare_repairs = final_recommendation_report.copy()
+
+            compare_repairs = compare_repairs.sort_values(
+                "Repair Intelligence Score",
+                ascending=False
+            ).head(10)
+
+            st.dataframe(
+                compare_repairs[
+                    [
+                        "Competition",
+                        "Home",
+                        "Away",
+                        "Overload Round",
+                        "Return Round",
+                        "Return Venue",
+                        "Repair Score",
+                        "Repair Intelligence Score",
+                        "Final Recommendation",
+                        "Suggested Action",
+                        "Balance Impact",
+                        "Matchup Impact",
+                        "Bye Impact",
+                        "Venue Group Impact"
+                    ]
+                ],
+                hide_index=True,
+                use_container_width=True
+            )
+
+
+
+
 
 
 
