@@ -984,7 +984,7 @@ if uploaded_file is not None:
     # TOP REPAIR CANDIDATES
     # ==================================================
 
-    st.subheader("🏆 Top Repair Candidates")
+    st.subheader("Top Repair Candidates")
 
     if len(over_capacity) == 0:
 
@@ -1018,6 +1018,103 @@ if uploaded_file is not None:
             ],
             hide_index=True,
             use_container_width=True
+        )
+
+    # ==================================================
+    # BEST REPAIR SUMMARY
+    # ==================================================
+
+    st.subheader("Best Repair Summary")
+
+    if len(over_capacity) == 0:
+
+        st.info("No repair summary available.")
+
+    else:
+
+        best_repair = repair_score_report.sort_values(
+            "Repair Score",
+            ascending=False
+        ).head(1)
+
+        if len(best_repair) == 0:
+
+            st.info("No repair candidates available.")
+
+        else:
+
+            best = best_repair.iloc[0]
+
+            st.success(
+                f"Best repair candidate: {best['Home']} v {best['Away']} "
+                f"in Round {best['Overload Round']} "
+                f"with score {best['Repair Score']}."
+            )
+
+            st.write(
+                f"Suggested action: {best['Suggested Action']}"
+            )
+
+            st.write(
+                f"Return fixture: Round {best['Return Round']} at {best['Return Venue']}"
+            )
+
+    # ==================================================
+    # MANAGER SUMMARY REPORT
+    # ==================================================
+
+    st.subheader("Manager Summary")
+
+    venue_issue_count = len(over_capacity)
+
+    repair_candidate_count = len(
+        repair_score_report[
+            repair_score_report["Repair Score"] >= 70
+        ]
+    )
+
+    critical_candidate_count = len(
+        repair_score_report[
+            repair_score_report["Repair Score"] >= 90
+        ]
+    )
+
+    summary_col1, summary_col2, summary_col3 = st.columns(3)
+
+    with summary_col1:
+        st.metric(
+            "Venue Capacity Issues",
+            venue_issue_count
+        )
+
+    with summary_col2:
+        st.metric(
+            "Good Repair Candidates",
+            repair_candidate_count
+        )
+
+    with summary_col3:
+        st.metric(
+            "High Priority Repairs",
+            critical_candidate_count
+        )
+
+    if venue_issue_count == 0:
+
+        st.success(
+            "No venue capacity issues detected."
+        )
+
+    elif critical_candidate_count > 0:
+
+        st.warning(
+            f"{critical_candidate_count} high-priority repair opportunities identified."
+        )
+
+    else:
+
+        st.info(
+            "Venue issues exist but no high-confidence repair candidates found."
         )
 
 
