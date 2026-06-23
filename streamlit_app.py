@@ -1812,6 +1812,131 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+    # ==================================================
+    # REPAIR SIMULATION
+    # ==================================================
+
+    st.subheader("Repair Simulation")
+
+    if len(over_capacity) == 0:
+
+        st.info(
+            "No repair simulation available because no venue capacity issues were found."
+        )
+
+    else:
+
+        simulation_options = final_recommendation_report.copy()
+
+        simulation_options["Simulation Label"] = (
+            simulation_options["Competition"].astype(str)
+            + " | Round "
+            + simulation_options["Overload Round"].astype(str)
+            + " | "
+            + simulation_options["Home"].astype(str)
+            + " v "
+            + simulation_options["Away"].astype(str)
+            + " | Score "
+            + simulation_options["Repair Intelligence Score"].astype(str)
+            + " | "
+            + simulation_options["Final Recommendation"].astype(str)
+        )
+
+        selected_simulation = st.selectbox(
+            "Select repair to simulate",
+            simulation_options["Simulation Label"]
+        )
+
+        selected_repair = simulation_options[
+            simulation_options["Simulation Label"] == selected_simulation
+        ].iloc[0]
+
+        st.write("Selected Repair")
+        st.write(f"Competition: {selected_repair['Competition']}")
+        st.write(f"Overload Round: {selected_repair['Overload Round']}")
+        st.write(f"Home: {selected_repair['Home']}")
+        st.write(f"Away: {selected_repair['Away']}")
+        st.write(f"Return Round: {selected_repair['Return Round']}")
+        st.write(f"Return Venue: {selected_repair['Return Venue']}")
+        st.write(f"Final Recommendation: {selected_repair['Final Recommendation']}")
+
+        simulated_df = df.copy()
+
+        sim_competition = selected_repair["Competition"]
+        sim_overload_round = selected_repair["Overload Round"]
+        sim_home = selected_repair["Home"]
+        sim_away = selected_repair["Away"]
+        sim_return_round = selected_repair["Return Round"]
+
+        repair_match = (
+            (simulated_df["Competition"].astype(str) == str(sim_competition))
+            &
+            (simulated_df["Round"].astype(str) == str(sim_overload_round))
+            &
+            (simulated_df["Home"].astype(str) == str(sim_home))
+            &
+            (simulated_df["Away"].astype(str) == str(sim_away))
+        )
+
+        return_match = (
+            (simulated_df["Competition"].astype(str) == str(sim_competition))
+            &
+            (simulated_df["Round"].astype(str) == str(sim_return_round))
+            &
+            (simulated_df["Home"].astype(str) == str(sim_away))
+            &
+            (simulated_df["Away"].astype(str) == str(sim_home))
+        )
+
+        if repair_match.sum() == 0:
+
+            st.error(
+                "Simulation could not find the original overloaded fixture row."
+            )
+
+        elif return_match.sum() == 0:
+
+            st.error(
+                "Simulation could not find the return fixture row."
+            )
+
+        else:
+
+            # Flip original overloaded fixture
+            simulated_df.loc[repair_match, "Home"] = sim_away
+            simulated_df.loc[repair_match, "Away"] = sim_home
+
+            # Flip return fixture
+            simulated_df.loc[return_match, "Home"] = sim_home
+            simulated_df.loc[return_match, "Away"] = sim_away
+
+            st.success(
+                "Simulation created. Original fixture data has not been changed."
+            )
+
+            st.write("Simulated Fixture Changes")
+
+            simulated_changes = simulated_df[
+                repair_match | return_match
+            ][
+                [
+                    "Competition",
+                    "Round",
+                    "Home",
+                    "Away",
+                    "Venue"
+                ]
+            ]
+
+            st.dataframe(
+                simulated_changes,
+                hide_index=True,
+                use_container_width=True
+            )
+
+
+
+
 
 
 
