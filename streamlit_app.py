@@ -25,7 +25,7 @@ import pandas as pd
 st.title("Fixture Analysis Platform")
 
 # ==================================================
-# UPLOAD CONTROLS
+# 1. UPLOAD CONTROLS
 # ==================================================
 
 uploaded_file = st.file_uploader(
@@ -72,12 +72,15 @@ Example:
 |
 """)
 # ==================================================
-# SESSION STATE SETUP
+# 2. SESSION STATE SETUP
 # ==================================================
 
 if "override_decisions" not in st.session_state:
     st.session_state["override_decisions"] = []
 
+# ==================================================
+# 3. FILE LOADING
+# ==================================================
 
 if uploaded_file is not None:
 
@@ -93,9 +96,10 @@ if uploaded_file is not None:
         ["Draft Fixture", "Final Fixture"]
     )
 
-    # ==================================================
-    # NORMALISE UPLOAD TEMPLATE COLUMNS
-    # ==================================================
+# ==================================================
+# 4. FILE VALIDATION
+# Normalise Upload Template Columns
+# ==================================================
 
     df = df.rename(
         columns={
@@ -116,9 +120,10 @@ if uploaded_file is not None:
             .str.strip()
         )
 
-    # ==================================================
-    # FIXTURE UPLOAD VALIDATION
-    # ==================================================
+# ==================================================
+# 4. FILE VALIDATION
+# Fixture Upload Validation
+# ==================================================
 
     st.subheader("Fixture Upload Validation")
 
@@ -166,14 +171,22 @@ if uploaded_file is not None:
     if "Override Notes" not in df.columns:
         df["Override Notes"] = ""
 
-    # File Summary
+# ==================================================
+# 5. DASHBOARD
+# File Summary
+# ==================================================
+
     st.subheader("File Summary")
     st.write(f"Rows: {df.shape[0]}")
     st.write(f"Columns: {df.shape[1]}")
     st.write("Column Names:")
     st.write(list(df.columns))
 
-    # Core Data
+# ==================================================
+# 5. DASHBOARD
+# Core Data
+# ================================================== 
+  
     competitions = sorted(df["Competition"].dropna().astype(str).unique())
 
     home_teams = df["Home"].dropna().astype(str)
