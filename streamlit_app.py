@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+from modules.venue_analysis import build_venue_config
+
 # ==================================================
 # FIXTURE ANALYSIS PLATFORM
 # ==================================================
@@ -316,9 +318,13 @@ if uploaded_file is not None:
 
     st.dataframe(rules_df)
 
-    # ==================================================
+# ==================================================
+# 6. VENUE Analysis
+# ==================================================
+
+    # --------------------------
     # VENUE USAGE REPORT
-    # ==================================================
+    # --------------------------
 
     st.subheader("Venue Usage Report")
 
@@ -339,9 +345,9 @@ if uploaded_file is not None:
 
     st.dataframe(venue_usage)
 
-    # ==================================================
+    # --------------------------
     # VENUE CONFIG
-    # ==================================================
+    # --------------------------
 
     venue_slots = {}
     venue_groups = {}
@@ -402,9 +408,9 @@ if uploaded_file is not None:
             "ESS2": "ESS"
         }
     
-    # ==================================================
+    # --------------------------------
     # VENUE CLASH DETECTION
-    # ==================================================
+    # --------------------------------
 
     if fixture_stage == "Final Fixture":
 
@@ -441,9 +447,9 @@ if uploaded_file is not None:
         st.subheader("Venue Clash Detection")
         st.info("Skipped for draft fixtures because Date and Time are not required.")
 
-    # ==================================================
+    # ----------------------------------------
     # VENUE CAPACITY BY ROUND
-    # ==================================================
+    # ----------------------------------------
 
     st.subheader("Venue Capacity By Round")
 
@@ -492,8 +498,12 @@ if uploaded_file is not None:
         st.dataframe(over_capacity)
 
     # ==================================================
-    # REPAIR ANALYSIS SETTINGS
+    # 7. REPAIR ENGINE
     # ==================================================
+
+    # -----------------------------
+    # REPAIR ANALYSIS SETTINGS
+    # -----------------------------
 
     st.subheader("Repair Analysis Settings")
 
@@ -521,9 +531,9 @@ if uploaded_file is not None:
 
 
 
-    # ==================================================
+    # --------------------------------------
     # VENUE OVERLOAD INVESTIGATION REPORT
-    # ==================================================
+    # --------------------------------------
 
     st.subheader("Venue Overload Investigation Report")
 
@@ -580,9 +590,13 @@ if uploaded_file is not None:
             hide_index=True
         )
 
-    # ==================================================
-    # RETURN FIXTURE FINDER
-    # ==================================================
+# ==================================================
+# 7. REPAIR ENGINE
+# ==================================================
+
+# --------------------------------------------------
+# Return Fixture Finder
+# --------------------------------------------------
 
     st.subheader("Return Fixture Finder")
 
@@ -649,9 +663,9 @@ if uploaded_file is not None:
             hide_index=True
         )
 
-    # ==================================================
-    # FLIP CANDIDATE DETECTION
-    # ==================================================
+# --------------------------------------------------
+# Flip Candidate Detection
+# --------------------------------------------------
 
     st.subheader("Flip Candidate Detection")
 
@@ -791,9 +805,9 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
-    # ==================================================
-    # FLIP IMPACT ANALYSIS
-    # ==================================================
+# --------------------------------------------------
+# Flip Impact Analysis
+# --------------------------------------------------
 
     st.subheader("Flip Impact Analysis")
 
@@ -922,9 +936,9 @@ if uploaded_file is not None:
 
 
 
-    # ==================================================
-    # REPAIR SCORE REPORT
-    # ==================================================
+# --------------------------------------------------
+# Repair Score Report
+# --------------------------------------------------
 
     st.subheader("Repair Score Report")
 
@@ -1018,9 +1032,9 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
-    # ==================================================
-    # TOP REPAIR CANDIDATES
-    # ==================================================
+# --------------------------------------------------
+# Top Repair Candidates
+# --------------------------------------------------
 
     st.subheader("Top Repair Candidates")
 
@@ -1850,9 +1864,13 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
-    # ==================================================
-    # REPAIR SIMULATION
-    # ==================================================
+# ==================================================
+# 8. SIMULATION ENGINE
+# ==================================================
+
+#-----------------------
+# Repair Simulation
+#-----------------------    
 
     st.subheader("Repair Simulation")
 
@@ -1972,9 +1990,9 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
-            # ==================================================
-            # SIMULATION OUTCOME SUMMARY
-            # ==================================================
+# --------------------------
+#  SIMULATION OUTCOME SUMMARY
+# --------------------------
 
             st.subheader("Simulation Outcome Summary")
 
@@ -2073,9 +2091,9 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
-            # ==================================================
-            # MATCHUP SIMULATION OUTCOME
-            # ==================================================
+# ---------------------------
+# MATCHUP SIMULATION OUTCOME
+# ---------------------------
 
             st.subheader("Matchup Simulation Outcome")
 
@@ -2187,9 +2205,9 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
-            # ==================================================
-            # FIXTURE HEALTH OUTCOME SUMMARY
-            # ==================================================
+# ----------------------------------
+# FIXTURE HEALTH OUTCOME SUMMARY
+# ----------------------------------
 
             st.subheader("Fixture Health Outcome Summary")
 
@@ -2260,9 +2278,9 @@ if uploaded_file is not None:
                     "Simulation may create additional venue capacity issues."
                 )
 
-            # ==================================================
-            # HOME / AWAY SIMULATION OUTCOME
-            # ==================================================
+# -------------------------------------------
+# HOME / AWAY SIMULATION OUTCOME
+# -------------------------------------------
 
             st.subheader("Home / Away Simulation Outcome")
 
@@ -2378,9 +2396,9 @@ if uploaded_file is not None:
                     "Simulation worsens home/away balance for the affected teams."
                 )
 
-            # ==================================================
-            # SIMULATION EXPORT
-            # ==================================================
+# --------------------------
+# SIMULATION EXPORT
+# --------------------------
 
             st.subheader("Simulation Export")
 
@@ -2446,9 +2464,9 @@ if uploaded_file is not None:
                 mime="text/csv"
             )
 
-            # ==================================================
-            # SIMULATION DASHBOARD
-            # ==================================================
+# --------------------------
+# SIMULATION DASHBOARD
+# --------------------------
 
             st.subheader("Simulation Dashboard")
 
@@ -2517,9 +2535,9 @@ if uploaded_file is not None:
                     "Overall Simulation Result: Review Required"
                 )
 
-            # ==================================================
-            # COMPARE TOP REPAIRS
-            # ==================================================
+# --------------------------------
+# COMPARE TOP REPAIRS
+# --------------------------------
 
             st.subheader("Compare Top Repairs")
 
