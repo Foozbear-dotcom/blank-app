@@ -1,6 +1,27 @@
 import streamlit as st
 import pandas as pd
 
+# ==================================================
+# FIXTURE ANALYSIS PLATFORM
+# ==================================================
+#
+# SECTION INDEX
+#
+# 1. Upload Controls
+# 2. Session State
+# 3. File Loading
+# 4. Validation
+# 5. Dashboard
+# 6. Competition Reports
+# 7. Venue Analysis
+# 8. Repair Engine
+# 9. Simulation Engine
+# 10. Export Centre
+# 11. Development Roadmap
+#
+# ==================================================
+
+
 st.title("Fixture Analysis Platform")
 
 # ==================================================
