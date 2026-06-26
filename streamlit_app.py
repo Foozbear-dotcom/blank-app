@@ -3,6 +3,10 @@ import pandas as pd
 
 st.title("Fixture Analysis Platform")
 
+# ==================================================
+# UPLOAD CONTROLS
+# ==================================================
+
 uploaded_file = st.file_uploader(
     "Upload Fixture File",
     type=["csv", "xlsx"]
