@@ -1,9 +1,12 @@
 import streamlit as st
 import pandas as pd
 
+from modules.dashboard import show_dashboard
+
 from modules.venue_analysis import (
     build_venue_config,
     show_venue_usage_report,
+    show_venue_clash_detection,
     show_venue_capacity
 )
 
@@ -227,48 +230,13 @@ if uploaded_file is not None:
 # FIXTURE HEALTH DASHBOARD
 # ==================================================
 
-    st.header("Fixture Health Dashboard")
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        st.metric("Competitions", len(competitions))
-
-    with col2:
-        st.metric("Teams", len(teams))
-
-    with col3:
-        st.metric("Venues", len(venues))
-
-    with col4:
-        st.metric("Rounds", len(clean_rounds))
-
-    with col5:
-        st.metric("Games", len(df))
-
-
-    # Competition Breakdown
-    st.subheader("Competition Breakdown")
-
-    competition_summary = []
-
-    for competition in competitions:
-        comp_df = df[df["Competition"] == competition]
-
-        comp_home = comp_df["Home"].dropna().astype(str)
-        comp_away = comp_df["Away"].dropna().astype(str)
-
-        comp_teams = pd.concat([comp_home, comp_away])
-        comp_teams = comp_teams[comp_teams.str.lower() != "bye"]
-
-        competition_summary.append({
-            "Competition": competition,
-            "Teams": comp_teams.nunique(),
-            "Games": len(comp_df)
-        })
-
-    summary_df = pd.DataFrame(competition_summary)
-    st.dataframe(summary_df)
+    summary_df = show_dashboard(
+    df,
+    competitions,
+    teams,
+    venues,
+    clean_rounds
+)
 
     # ==================================================
     # COMPETITION RULES REPORT
@@ -342,49 +310,19 @@ if uploaded_file is not None:
     # VENUE CLASH DETECTION
     # --------------------------------
 
-    if fixture_stage == "Final Fixture":
-
-        st.subheader("Venue Clash Detection")
-
-        clash_games = df[
-            (df["Home"].astype(str).str.lower() != "bye") &
-            (df["Away"].astype(str).str.lower() != "bye")
-        ].copy()
-
-        clash_games["Venue"] = clash_games["Venue"].astype(str)
-        clash_games["Date"] = clash_games["Date"].astype(str)
-        clash_games["Time"] = clash_games["Time"].astype(str)
-
-        venue_clashes = (
-            clash_games
-            .groupby(["Date", "Venue", "Time"])
-            .size()
-            .reset_index(name="Games Scheduled")
-        )
-
-        venue_clashes = venue_clashes[
-            venue_clashes["Games Scheduled"] > 1
-        ]
-
-        if len(venue_clashes) == 0:
-            st.success("No venue/time clashes found.")
-        else:
-            st.warning(f"Venue/time clashes found: {len(venue_clashes)}")
-            st.dataframe(venue_clashes)
-
-    else:
-
-        st.subheader("Venue Clash Detection")
-        st.info("Skipped for draft fixtures because Date and Time are not required.")
-
+    venue_clashes = show_venue_clash_detection(
+    df,
+    fixture_stage
+    )
     # ----------------------------------------
     # VENUE CAPACITY BY ROUND
     # ----------------------------------------
 
-    venue_round_usage, over_capacity = show_venue_capacity(
+    capacity_games, venue_round_usage, over_capacity = show_venue_capacity(
     df,
     venue_slots
-)
+    )
+
 
     # ==================================================
     # 7. REPAIR ENGINE

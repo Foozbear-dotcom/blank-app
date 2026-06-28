@@ -129,4 +129,60 @@ def show_venue_capacity(df, venue_slots):
             f"Venue capacity issues: {len(over_capacity)}"
         )
 
-    return venue_round_usage, over_capacity
+    return (
+    capacity_games,
+    venue_round_usage,
+    over_capacity
+    )
+
+def show_venue_clash_detection(df, fixture_stage):
+
+    st.subheader("Venue Clash Detection")
+
+    if fixture_stage != "Final Fixture":
+
+        st.info(
+            "Skipped for draft fixtures because Date and Time are not required."
+        )
+
+        return pd.DataFrame()
+
+    clash_games = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    clash_games["Venue"] = clash_games["Venue"].astype(str)
+    clash_games["Date"] = clash_games["Date"].astype(str)
+    clash_games["Time"] = clash_games["Time"].astype(str)
+
+    venue_clashes = (
+        clash_games
+        .groupby(["Date", "Venue", "Time"])
+        .size()
+        .reset_index(name="Games Scheduled")
+    )
+
+    venue_clashes = venue_clashes[
+        venue_clashes["Games Scheduled"] > 1
+    ]
+
+    if len(venue_clashes) == 0:
+
+        st.success("No venue/time clashes found.")
+
+    else:
+
+        st.warning(
+            f"Venue/time clashes found: {len(venue_clashes)}"
+        )
+
+        st.dataframe(
+            venue_clashes,
+            hide_index=True,
+            use_container_width=True
+        )
+
+    return venue_clashes
+
+
