@@ -52,3 +52,29 @@ def build_venue_config(venue_config_file):
         }
 
     return venue_slots, venue_groups
+
+def show_venue_usage_report(df):
+    st.subheader("Venue Usage Report")
+
+    venue_games = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    venue_games["Venue"] = venue_games["Venue"].astype(str)
+
+    venue_usage = (
+        venue_games
+        .groupby(["Venue"])
+        .size()
+        .reset_index(name="Games")
+        .sort_values("Games", ascending=False)
+    )
+
+    st.dataframe(
+        venue_usage,
+        hide_index=True,
+        use_container_width=True
+    )
+
+    return venue_usage

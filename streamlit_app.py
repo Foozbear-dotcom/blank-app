@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from modules.venue_analysis import build_venue_config
+from modules.venue_analysis import build_venue_config, show_venue_usage_report
 
 # ==================================================
 # FIXTURE ANALYSIS PLATFORM
@@ -326,24 +326,7 @@ if uploaded_file is not None:
     # VENUE USAGE REPORT
     # --------------------------
 
-    st.subheader("Venue Usage Report")
-
-    venue_games = df[
-        (df["Home"].astype(str).str.lower() != "bye") &
-        (df["Away"].astype(str).str.lower() != "bye")
-    ].copy()
-
-    venue_games["Venue"] = venue_games["Venue"].astype(str)
-
-    venue_usage = (
-        venue_games
-        .groupby(["Venue"])
-        .size()
-        .reset_index(name="Games")
-        .sort_values("Games", ascending=False)
-    )
-
-    st.dataframe(venue_usage)
+    venue_usage = show_venue_usage_report(df)
 
     # --------------------------
     # VENUE CONFIG
