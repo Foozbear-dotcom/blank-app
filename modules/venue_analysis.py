@@ -78,3 +78,55 @@ def show_venue_usage_report(df):
     )
 
     return venue_usage
+
+def show_venue_capacity(df, venue_slots):
+
+    st.subheader("Venue Capacity By Round")
+
+    capacity_games = df[
+        (df["Home"].astype(str).str.lower() != "bye") &
+        (df["Away"].astype(str).str.lower() != "bye")
+    ].copy()
+
+    capacity_games["Venue"] = capacity_games["Venue"].astype(str)
+
+    venue_round_usage = (
+        capacity_games
+        .groupby(["Round", "Venue"])
+        .size()
+        .reset_index(name="Games Scheduled")
+    )
+
+    venue_round_usage["Capacity"] = (
+        venue_round_usage["Venue"]
+        .map(venue_slots)
+        .fillna(2)
+        .astype(int)
+    )
+
+    venue_round_usage["Status"] = venue_round_usage.apply(
+        lambda row:
+            "Over Capacity"
+            if row["Games Scheduled"] > row["Capacity"]
+            else "OK",
+        axis=1
+    )
+
+    st.dataframe(
+        venue_round_usage,
+        hide_index=True,
+        use_container_width=True
+    )
+
+    over_capacity = venue_round_usage[
+        venue_round_usage["Status"] == "Over Capacity"
+    ]
+
+    if len(over_capacity) == 0:
+        st.success("No venue capacity issues found.")
+    else:
+        st.warning(
+            f"Venue capacity issues: {len(over_capacity)}"
+        )
+
+    return venue_round_usage, over_capacity
