@@ -10,6 +10,9 @@ from modules.venue_analysis import (
     show_venue_capacity
 )
 
+from modules.validation import validate_fixture_upload
+
+
 # ==================================================
 # FIXTURE ANALYSIS PLATFORM
 # ==================================================
@@ -105,80 +108,14 @@ if uploaded_file is not None:
         ["Draft Fixture", "Final Fixture"]
     )
 
-# ==================================================
-# 4. FILE VALIDATION
-# Normalise Upload Template Columns
-# ==================================================
-
-    df = df.rename(
-        columns={
-            "Grade": "Competition",
-            "Game date": "Date"
-        }
+## Validation ##
+    
+    df = validate_fixture_upload(
+        df,
+        fixture_stage
     )
 
-    if "Field" in df.columns:
-        df["Venue Name"] = df["Venue"]
-        df["Venue"] = df["Field"]
 
-    if "Round" in df.columns:
-        df["Round"] = (
-            df["Round"]
-            .astype(str)
-            .str.replace("Round", "", case=False, regex=False)
-            .str.strip()
-        )
-
-# ==================================================
-# 4. FILE VALIDATION
-# Fixture Upload Validation
-# ==================================================
-
-    st.subheader("Fixture Upload Validation")
-
-    if fixture_stage == "Draft Fixture":
-        required_fixture_columns = [
-            "Competition",
-            "Round",
-            "Home",
-            "Away",
-            "Venue"
-        ]
-    else:
-        required_fixture_columns = [
-            "Competition",
-            "Round",
-            "Home",
-            "Away",
-            "Venue",
-            "Date",
-            "Time"
-        ]
-
-    missing_fixture_columns = [
-        col for col in required_fixture_columns
-        if col not in df.columns
-    ]
-
-    if len(missing_fixture_columns) == 0:
-        st.success("Fixture file has all required columns.")
-    else:
-        st.error("Fixture file is missing required columns:")
-        st.write(missing_fixture_columns)
-        st.stop()
-
-    # ==================================================
-    # OPTIONAL OVERRIDE COLUMNS
-    # ==================================================
-
-    if "Override" not in df.columns:
-        df["Override"] = "No"
-
-    if "Override Reason" not in df.columns:
-        df["Override Reason"] = ""
-
-    if "Override Notes" not in df.columns:
-        df["Override Notes"] = ""
 
 # ==================================================
 # 5. DASHBOARD
