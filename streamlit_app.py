@@ -875,23 +875,30 @@ if uploaded_file is not None:
                 f"Return fixture: Round {best['Return Round']} at {best['Return Venue']}"
             )
 
-    # ==================================================
-    # MANAGER SUMMARY REPORT
-    # ==================================================
+    # --------------------------------------------------
+    # Manager Summary
+    # --------------------------------------------------
 
     st.subheader("Manager Summary")
 
     venue_issue_count = len(over_capacity)
 
-    repair_candidate_count = len(
-        repair_score_report[
-            repair_score_report["Repair Score"] >= 70
+    if len(over_capacity) == 0:
+
+        repair_candidate_count = 0
+        critical_candidate_count = 0
+
+    else:
+
+        repair_candidate_count = len(
+            repair_score_report[
+                repair_score_report["Repair Score"] >= 70
         ]
     )
 
-    critical_candidate_count = len(
-        repair_score_report[
-            repair_score_report["Repair Score"] >= 90
+        critical_candidate_count = len(
+            repair_score_report[
+                repair_score_report["Repair Score"] >= 90
         ]
     )
 
