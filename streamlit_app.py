@@ -10,7 +10,15 @@ from modules.venue_analysis import (
     show_venue_capacity
 )
 
-from modules.validation import validate_fixture_upload
+from modules.validation import (
+    validate_fixture_upload,
+    validate_seedings_upload
+)
+
+from modules.repair_engine import (
+    show_repair_settings,
+    show_overload_investigation
+)
 
 
 # ==================================================
@@ -260,7 +268,6 @@ if uploaded_file is not None:
     venue_slots
     )
 
-
     # ==================================================
     # 7. REPAIR ENGINE
     # ==================================================
@@ -299,60 +306,10 @@ if uploaded_file is not None:
     # VENUE OVERLOAD INVESTIGATION REPORT
     # --------------------------------------
 
-    st.subheader("Venue Overload Investigation Report")
-
-    if len(over_capacity) == 0:
-
-        st.success(
-            "No overloaded venues to investigate."
-        )
-
-    else:
-
-        overload_games = capacity_games.merge(
-            over_capacity[
-                [
-                    "Round",
-                    "Venue",
-                    "Games Scheduled",
-                    "Capacity"
-                ]
-            ],
-            on=[
-                "Round",
-                "Venue"
-            ],
-            how="inner"
-        )
-
-        overload_games = overload_games.sort_values(
-            [
-                "Round",
-                "Venue",
-                "Competition",
-                "Home",
-                "Away"
-            ]
-        )
-
-        st.warning(
-            f"Games at overloaded venues: {len(overload_games)}"
-        )
-
-        st.dataframe(
-            overload_games[
-                [
-                    "Round",
-                    "Venue",
-                    "Games Scheduled",
-                    "Capacity",
-                    "Competition",
-                    "Home",
-                    "Away"
-                ]
-            ],
-            hide_index=True
-        )
+    overload_games = show_overload_investigation(
+        capacity_games,
+        over_capacity
+    )
 
 # ==================================================
 # 7. REPAIR ENGINE
@@ -2351,6 +2308,7 @@ if uploaded_file is not None:
 
 
 
+
     # ==================================================
     # SEEDINGS UPLOAD
     # ==================================================
@@ -2366,52 +2324,9 @@ if uploaded_file is not None:
     # SEEDINGS UPLOAD VALIDATION
     # ==================================================
 
-        st.subheader("Seedings Upload Validation")
-
-        required_seedings_columns = [
-            "Competition",
-            "Seed",
-            "Team",
-            "Venue"
-        ]
-
-        missing_seedings_columns = [
-            col for col in required_seedings_columns
-            if col not in seedings_df.columns
-        ]
-
-        if len(missing_seedings_columns) == 0:
-            st.success("Seedings file has all required columns.")
-        else:
-            st.error("Seedings file is missing required columns:")
-            st.write(missing_seedings_columns)
-            st.stop()
-
-        st.success("Seedings File Uploaded Successfully")
-
-        st.subheader("Seedings Preview")
-        st.dataframe(seedings_df.head())
-
-        st.subheader("Seedings Summary")
-
-        seed_competitions = (
-            seedings_df["Competition"]
-            .dropna()
-            .astype(str)
-            .nunique()
+        seedings_df = validate_seedings_upload(
+            seedings_df
         )
-
-        seed_teams = (
-            seedings_df[
-                seedings_df["Team"]
-                .astype(str)
-                .str.lower() != "bye"
-            ]["Team"]
-            .nunique()
-        )
-
-        st.write(f"Competitions: {seed_competitions}")
-        st.write(f"Teams: {seed_teams}")
 
         # ==================================================
         # DUPLICATE SEED DETECTION

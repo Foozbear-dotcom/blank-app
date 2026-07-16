@@ -100,3 +100,38 @@ def validate_fixture_upload(df, fixture_stage):
         df["Override Notes"] = ""
 
     return df
+
+def validate_seedings_upload(seedings_df):
+
+    st.subheader("Seedings Upload Validation")
+
+    required_seedings_columns = [
+        "Competition",
+        "Seed",
+        "Team",
+        "Venue"
+    ]
+
+    missing_seedings_columns = [
+        column
+        for column in required_seedings_columns
+        if column not in seedings_df.columns
+    ]
+
+    if len(missing_seedings_columns) == 0:
+
+        st.success(
+            "Seedings file has all required columns."
+        )
+
+    else:
+
+        st.error(
+            "Seedings file is missing required columns:"
+        )
+
+        st.write(missing_seedings_columns)
+
+        st.stop()
+
+    return seedings_df
