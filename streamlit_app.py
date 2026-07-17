@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+from modules.file_utils import get_file_name
+
 from modules.dashboard import show_dashboard
 
 from modules.venue_analysis import (
@@ -21,6 +23,9 @@ from modules.repair_engine import (
     show_return_fixture_finder,
     show_flip_candidate_detection
 )
+
+
+
 
 
 # ==================================================
@@ -46,24 +51,68 @@ from modules.repair_engine import (
 
 st.title("Fixture Analysis Platform")
 
+# --------------------------------------------------
+# Developer Mode
+# --------------------------------------------------
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔧 Developer Tools")
+
+developer_mode = st.sidebar.checkbox(
+    "Developer Mode",
+    value=False,
+    help="Load built-in test files instead of uploading files manually."
+)
+
+if developer_mode:
+    st.sidebar.warning(
+        "Developer Mode is active. Built-in test data will be used."
+    )
+
+
 # ==================================================
 # 1. UPLOAD CONTROLS
 # ==================================================
 
-uploaded_file = st.file_uploader(
-    "Upload Fixture File",
-    type=["csv", "xlsx"]
-)
+if developer_mode:
 
-venue_config_file = st.file_uploader(
-    "Upload Venue Config File",
-    type=["csv", "xlsx"]
-)
+    uploaded_file = "test_data/fixture.xlsx"
+    venue_config_file = "test_data/venue_capacity.xlsx"
+    seedings_file = "test_data/seedings.xlsx"
 
-seedings_file = st.file_uploader(
-    "Upload Seedings File",
-    type=["csv", "xlsx"]
-)
+    st.info(
+        "🔧 Developer Mode active — built-in test files loaded."
+    )
+
+    st.caption(
+        "Fixture: test_data/fixture.xlsx"
+    )
+
+    st.caption(
+        "Venue Config: test_data/venue_capacity.xlsx"
+    )
+
+    st.caption(
+        "Seedings: test_data/seedings.xlsx"
+    )
+
+else:
+
+    uploaded_file = st.file_uploader(
+        "Upload Fixture File",
+        type=["csv", "xlsx"]
+    )
+
+    venue_config_file = st.file_uploader(
+        "Upload Venue Config File",
+        type=["csv", "xlsx"]
+    )
+
+    seedings_file = st.file_uploader(
+        "Upload Seedings File",
+        type=["csv", "xlsx"]
+    )
+
 with st.expander("Upload File Requirements"):
 
     st.markdown("""
@@ -106,7 +155,7 @@ if "override_decisions" not in st.session_state:
 
 if uploaded_file is not None:
 
-    if uploaded_file.name.endswith(".csv"):
+    if get_file_name(uploaded_file).lower().endswith(".csv"):
         df = pd.read_csv(uploaded_file)
     else:
         df = pd.read_excel(uploaded_file)
@@ -2124,7 +2173,7 @@ if uploaded_file is not None:
 
     if seedings_file is not None:
 
-        if seedings_file.name.endswith(".csv"):
+        if get_file_name(seedings_file).lower().endswith(".csv"):
             seedings_df = pd.read_csv(seedings_file)
         else:
             seedings_df = pd.read_excel(seedings_file)

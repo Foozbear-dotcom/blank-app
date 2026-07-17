@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+from modules.file_utils import get_file_name
 
 def build_venue_config(venue_config_file):
     venue_slots = {}
@@ -8,7 +9,7 @@ def build_venue_config(venue_config_file):
 
     if venue_config_file is not None:
 
-        if venue_config_file.name.endswith(".csv"):
+        if get_file_name(venue_config_file).lower().endswith(".csv"):
             venue_config = pd.read_csv(venue_config_file)
         else:
             venue_config = pd.read_excel(venue_config_file)
