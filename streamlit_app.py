@@ -3,6 +3,8 @@ import pandas as pd
 
 from modules.file_utils import get_file_name
 
+from pathlib import Path
+
 from modules.dashboard import show_dashboard
 
 from modules.venue_analysis import (
@@ -64,9 +66,20 @@ developer_mode = st.sidebar.checkbox(
     help="Load built-in test files instead of uploading files manually."
 )
 
+developer_scenario = "Default Development Data"
+
 if developer_mode:
+
+    developer_scenario = st.sidebar.selectbox(
+        "Test Scenario",
+        [
+            "Default Development Data",
+            "Venue Test - Brunswick"
+        ]
+    )
+
     st.sidebar.warning(
-        "Developer Mode is active. Built-in test data will be used."
+        "Developer Mode is active."
     )
 
 
@@ -76,24 +89,45 @@ if developer_mode:
 
 if developer_mode:
 
-    uploaded_file = "test_data/fixture.xlsx"
-    venue_config_file = "test_data/venue_capacity.xlsx"
-    seedings_file = "test_data/seedings.xlsx"
+    test_data_path = Path("test_data")
+
+    scenario_files = {
+        "Default Development Data": (
+            test_data_path / "fixture.xlsx"
+        ),
+        "Venue Test - Brunswick": (
+            test_data_path
+            / "scenarios"
+            / "venue_test-bru.xlsx"
+        )
+    }
+
+    uploaded_file = scenario_files[
+        developer_scenario
+    ]
+
+    venue_config_file = (
+        test_data_path / "venue_capacity.xlsx"
+    )
+
+    seedings_file = (
+        test_data_path / "seedings.xlsx"
+    )
 
     st.info(
-        "🔧 Developer Mode active — built-in test files loaded."
+        f"🔧 Developer Mode active — {developer_scenario}"
     )
 
     st.caption(
-        "Fixture: test_data/fixture.xlsx"
+        f"Fixture: {uploaded_file}"
     )
 
     st.caption(
-        "Venue Config: test_data/venue_capacity.xlsx"
+        f"Venue Config: {venue_config_file}"
     )
 
     st.caption(
-        "Seedings: test_data/seedings.xlsx"
+        f"Seedings: {seedings_file}"
     )
 
 else:
