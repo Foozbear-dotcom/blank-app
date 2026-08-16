@@ -326,3 +326,286 @@ def show_flip_candidate_detection(
 
     return flip_candidate_report
 
+def show_flip_impact_analysis(
+    flip_candidate_report,
+    over_capacity,
+    venue_round_usage,
+    venue_slots
+):
+
+    st.subheader("Flip Impact Analysis")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no flip impacts to analyse."
+        )
+
+        return None
+
+    impact_rows = []
+
+    for _, row in flip_candidate_report.iterrows():
+
+        if row["Flip Candidate"] not in [
+            "Flip Candidate",
+            "Late Repair Candidate"
+        ]:
+
+            impact_rows.append({
+                "Competition": row["Competition"],
+                "Home": row["Home"],
+                "Away": row["Away"],
+                "Overload Round": row.get("Overload Round", ""),
+                "Return Round": row.get("Return Round", ""),
+                "Return Venue": row.get("Return Venue", ""),
+                "Return Found": row.get("Return Found", ""),
+                "Repair Window": row.get("Repair Window", ""),
+                "Spare Capacity": "",
+                "Recommendation": "Not Eligible",
+                "Reason": row["Reason"]
+            })
+
+            continue
+
+        return_round = row["Return Round"]
+        return_venue = row["Return Venue"]
+
+        venue_capacity_row = venue_round_usage[
+            (
+                venue_round_usage["Round"].astype(str)
+                == str(return_round)
+            )
+            &
+            (
+                venue_round_usage["Venue"].astype(str)
+                == str(return_venue)
+            )
+        ]
+
+        if len(venue_capacity_row) == 0:
+
+            games_scheduled = 0
+
+            capacity = venue_slots.get(
+                str(return_venue),
+                2
+            )
+
+        else:
+
+            games_scheduled = int(
+                venue_capacity_row.iloc[0]["Games Scheduled"]
+            )
+
+            capacity = int(
+                venue_capacity_row.iloc[0]["Capacity"]
+            )
+
+        spare_capacity = capacity - games_scheduled
+
+        if spare_capacity >= 1:
+
+            recommendation = "Recommended"
+
+            reason = (
+                "Repair candidate exists and return venue has capacity."
+            )
+
+        else:
+
+            recommendation = "Review"
+
+            reason = (
+                "Return venue may not have spare capacity."
+            )
+
+        impact_rows.append({
+            "Competition": row["Competition"],
+            "Home": row["Home"],
+            "Away": row["Away"],
+            "Overload Round": row["Overload Round"],
+            "Return Round": return_round,
+            "Return Venue": return_venue,
+            "Return Found": row["Return Found"],
+            "Repair Window": row["Repair Window"],
+            "Return Venue Capacity": capacity,
+            "Games Scheduled": games_scheduled,
+            "Spare Capacity": spare_capacity,
+            "Recommendation": recommendation,
+            "Reason": reason
+        })
+
+    impact_report = pd.DataFrame(
+        impact_rows
+    )
+
+    impact_display = impact_report[
+        [
+            "Competition",
+            "Home",
+            "Away",
+            "Overload Round",
+            "Return Round",
+            "Return Venue",
+            "Return Found",
+            "Repair Window",
+            "Spare Capacity",
+            "Recommendation",
+            "Reason"
+        ]
+    ]
+
+    st.dataframe(
+        impact_display,
+        hide_index=True,
+        use_container_width=True
+    )
+
+    return impact_report
+
+def show_repair_score_report(
+    impact_report,
+    over_capacity
+):
+
+    st.subheader("Repair Score Report")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no repair scores to calculate."
+        )
+
+        return None
+
+    repair_score_report = impact_report.copy()
+
+    def calculate_repair_score(row):
+
+        score = 0
+
+        if row.get("Repair Window", "") == "Open":
+            score += 40
+
+        elif row.get("Repair Window", "") == "Limited":
+            score += 20
+
+        if row.get("Return Found", "") == "Yes":
+            score += 20
+
+        try:
+            spare_capacity = int(
+                row.get("Spare Capacity", 0)
+            )
+        except:
+            spare_capacity = 0
+
+        if spare_capacity >= 2:
+            score += 30
+
+        elif spare_capacity == 1:
+            score += 20
+
+        if row.get("Recommendation", "") == "Recommended":
+            score += 10
+
+        return score
+
+    repair_score_report["Repair Score"] = (
+        repair_score_report.apply(
+            calculate_repair_score,
+            axis=1
+        )
+    )
+
+    def suggest_repair_action(row):
+
+        if row["Repair Score"] >= 90:
+            return "Strong candidate - review first"
+
+        elif row["Repair Score"] >= 70:
+            return "Good candidate - check details"
+
+        elif row["Repair Score"] >= 40:
+            return "Possible repair - manual review"
+
+        elif row.get("Repair Window", "") == "Closed":
+            return "No action - repair window closed"
+
+        else:
+            return "Manual repair required"
+
+    repair_score_report["Suggested Action"] = (
+        repair_score_report.apply(
+            suggest_repair_action,
+            axis=1
+        )
+    )
+
+    st.dataframe(
+        repair_score_report[
+            [
+                "Competition",
+                "Home",
+                "Away",
+                "Overload Round",
+                "Return Round",
+                "Return Venue",
+                "Return Found",
+                "Repair Window",
+                "Spare Capacity",
+                "Recommendation",
+                "Repair Score",
+                "Suggested Action",
+                "Reason"
+            ]
+        ],
+        hide_index=True,
+        use_container_width=True
+    )
+
+    return repair_score_report
+
+def show_top_repair_candidates(
+    repair_score_report,
+    over_capacity
+):
+
+    st.subheader("Top Repair Candidates")
+
+    if len(over_capacity) == 0:
+
+        st.success(
+            "No overloaded venues, so no repair candidates found."
+        )
+
+        return None
+
+    top_candidates = repair_score_report.copy()
+
+    top_candidates = top_candidates.sort_values(
+        "Repair Score",
+        ascending=False
+    )
+
+    top_candidates = top_candidates.head(10)
+
+    st.dataframe(
+        top_candidates[
+            [
+                "Competition",
+                "Home",
+                "Away",
+                "Overload Round",
+                "Return Round",
+                "Return Venue",
+                "Repair Score",
+                "Recommendation"
+            ]
+        ],
+        hide_index=True,
+        use_container_width=True
+    )
+
+    return top_candidates
